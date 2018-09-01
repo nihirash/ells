@@ -8,5 +8,8 @@ lazy val root = (project in file(".")).
       version := "0.1.0-SNAPSHOT"
     )),
     name := "Embeddable Lisp-Like Scripting",
-    libraryDependencies += scalaTest % Test
+    libraryDependencies ++= Seq(
+      scalaTest % Test,
+      "com.lihaoyi" %% "fastparse" % "1.0.0"
+    )
   )
