@@ -134,4 +134,60 @@ class ParserSpec extends FreeSpec with Matchers {
       }
     }
   }
+
+  "nil parser" - {
+    "should extract nil value" in {
+      val valueToParse = "nil"
+
+      Parser.nilParser.parse(valueToParse) match {
+        case Parsed.Success(EllsNil(), _) => succeed
+        case _ => fail("Nil doesn't parsed")
+      }
+    }
+  }
+
+  "list parser" - {
+    "should parse list of EllsTypes" in {
+      val valueToParse = "(1 2 3)"
+
+      Parser.listParser.parse(valueToParse) match {
+        case Parsed.Success(EllsList(v), _) => v shouldEqual List(1L, 2L, 3L).map(EllsLong)
+        case _ => fail("List parsing failed")
+      }
+    }
+
+    "should parse recursive lists" in {
+      val valueToParse =
+        """(hello
+          | (world 1
+          |        12.3
+          |        "Привет!"
+          |        ()))""".stripMargin
+
+      val expected = EllsList(List(
+        EllsIdentifier("hello"),
+        EllsList(List(
+          EllsIdentifier("world"),
+          EllsLong(1),
+          EllsDouble(12.3),
+          EllsString("Привет!"),
+          EllsNil()
+        ))
+      ))
+
+      Parser.listParser.parse(valueToParse) match {
+        case Parsed.Success(result, _) => result shouldEqual expected
+        case _ => fail("Recursive parsing list failed")
+      }
+    }
+
+    "should fail on unpaired brackets" in {
+      val valueToParse = "(hello world"
+
+      Parser.listParser.parse(valueToParse) match {
+        case Parsed.Success(_, _) => fail("Worng list parsed")
+        case Parsed.Failure(_, _, _) => succeed
+      }
+    }
+  }
 }

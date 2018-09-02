@@ -2,10 +2,16 @@ package com.nihirash.ells
 
 trait EllsType
 
-sealed trait EllsNumber extends Ordered[EllsNumber] {
+sealed trait EllsNumber extends EllsType with Ordered[EllsNumber] {
   def toDouble: Double
 
   def toLong: Long
+}
+
+case class EllsNil() extends EllsType
+
+case class EllsList(v: List[EllsType]) extends EllsType {
+  override def toString: String = "(" + v.map(_.toString).mkString(" ") + ")"
 }
 
 case class EllsDouble(v: Double) extends EllsNumber {
