@@ -1,6 +1,6 @@
 package com.nihirash.ells
 
-trait EllsType
+sealed trait EllsType
 
 sealed trait EllsNumber extends EllsType with Ordered[EllsNumber] {
   def toDouble: Double
