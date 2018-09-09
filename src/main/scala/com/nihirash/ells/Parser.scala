@@ -3,6 +3,9 @@ package com.nihirash.ells
 import fastparse.all._
 
 object Parser {
+  type parseResult = Either[String, Seq[EllsType]]
+  val expressionParser: Parser[EllsType] = P(listParser | valueParser)
+
   val numberParser: Parser[EllsType] = P(doubleParser | longsParser)
   val identityParser: Parser[EllsType] = P(((charParser | specialCharsParser) ~ (digitsParser | specialCharsParser | charParser).rep).!.map(id => EllsIdentifier(id)))
   val stringParser: Parser[EllsType] = P((separatorParser ~ "\"" ~/ (strCharsParser | escapeParser).rep.! ~ "\"").map(str => EllsString(StringContext.treatEscapes(str))))
@@ -12,10 +15,17 @@ object Parser {
   })
   val nilParser: Parser[EllsType] = P(("nil" | "()").!.map(_ => EllsNil()))
   val listParser: Parser[EllsType] = P(("(" ~/ valueParser.rep(sep = separatorParser) ~ separatorParser ~ ")")).map(v => EllsList(v.toList))
+  val bodyParser: Parser[Seq[EllsType]] = P(separatorParser ~ expressionParser.rep(sep = separatorParser))
+  private val specialCharsParser = P(CharsWhileIn("!@#$%^&*_-><=+*/"))
 
   private val valueParser = P(nilParser | numberParser | stringParser | booleanParser | identityParser | listParser)
   private val separatorParser = P(CharsWhileIn(" \r\n\t,").?)
-  private val specialCharsParser = P(CharsWhileIn("!@#$%^&*_-><="))
+
+  def apply(s: String): parseResult = bodyParser.parse(s)
+    .fold(
+      (_, index, x) => Left(s"Parse failed at position $index. Expected ${x.traced.expected}"),
+      (r, _) => Right(r)
+    )
   private val digitsParser = P(CharsWhileIn("0123456789"))
   private val fractionalParser = P("." ~ digitsParser)
   private val exponentParser = P(CharIn("eE") ~ CharIn("+-").? ~ digitsParser)
