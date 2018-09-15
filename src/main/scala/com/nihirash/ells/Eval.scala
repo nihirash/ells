@@ -43,6 +43,22 @@ class Eval {
 
     case "list" => EllsList(tail.map(evalExpression))
 
+    case "head" => tail.map(evalExpression) match {
+      case v :: Nil => v match {
+        case EllsList(l) => l.head
+        case _ => throw EllsTypesException("Only list are acceptable")
+      }
+      case _ => throw EllsArityException("Only one list are acceptable")
+    }
+
+    case "tail" => tail.map(evalExpression) match {
+      case v :: Nil => v match {
+        case EllsList(l) => EllsList(l.tail)
+        case _ => throw EllsTypesException("Only non-empty lists are acceptable")
+      }
+      case _ => throw EllsArityException("Only one list are acceptable")
+    }
+
     case "min" =>
       tail.map(evalExpression) match {
         case x :: Nil => x match {

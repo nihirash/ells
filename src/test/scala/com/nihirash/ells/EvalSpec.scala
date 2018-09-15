@@ -94,6 +94,33 @@ class EvalSpec extends FreeSpec with Matchers {
       }
     }
 
+    "head" - {
+      "will return first element of list" in {
+        val toParse = "(head (list 1 2 3))"
+        Parser(toParse).map(eval.eval) shouldEqual Right(EllsLong(1))
+      }
+    }
+
+    "tail" - {
+      "will return tail of list" in {
+        val toParse = "(tail (quote (1 2 3)))"
+        Parser(toParse).map(eval.eval) shouldEqual Right(EllsList(List(
+          EllsLong(2), EllsLong(3)
+        )))
+      }
+
+      "will return nil if list contains one element" in {
+        val toParse =
+          """
+            |(if (tail (list 1))
+            |   false
+            |   true)
+          """.stripMargin
+
+        Parser(toParse).map(eval.eval) shouldEqual Right(EllsBoolean(true))
+      }
+    }
+
     "min" - {
       "will find minimal value of arguments" in {
         val toParse = "(min (list 4 2 3.3))"
