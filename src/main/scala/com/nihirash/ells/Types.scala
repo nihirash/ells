@@ -72,13 +72,13 @@ case class EllsLong(v: Long) extends EllsNumber {
 
   override def toLong: Long = v
 
-  override def `+`(v2: EllsNumber): EllsNumber = EllsDouble(v + v2.toLong)
+  override def `+`(v2: EllsNumber): EllsNumber = EllsDouble(v + v2.toDouble)
 
-  override def `-`(v2: EllsNumber): EllsNumber = EllsDouble(v - v2.toLong)
+  override def `-`(v2: EllsNumber): EllsNumber = EllsDouble(v - v2.toDouble)
 
-  override def `*`(v2: EllsNumber): EllsNumber = EllsDouble(v * v2.toLong)
+  override def `*`(v2: EllsNumber): EllsNumber = EllsDouble(v * v2.toDouble)
 
-  override def `/`(v2: EllsNumber): EllsNumber = EllsDouble(v / v2.toLong)
+  override def `/`(v2: EllsNumber): EllsNumber = EllsDouble(v / v2.toDouble)
 
   override def empty: EllsNumber = EllsLong(0)
 
