@@ -5,14 +5,14 @@ import org.scalatest._
 class EnvSpec extends FreeSpec with Matchers {
   "Enviroment" - {
     "will set definition on define" in {
-      val env = Env()
+      val env = Env.empty
       env.define(id1, bTrue)
 
       env.definitions should contain theSameElementsAs Map(id1 -> bTrue)
     }
 
     "will update definition value on set" in {
-      val env = Env()
+      val env = Env.empty
       env.define(id1, bTrue)
       env.set(id1, bFalse)
 
@@ -20,18 +20,18 @@ class EnvSpec extends FreeSpec with Matchers {
     }
 
     "will fail on set if value wasn't predefined" in {
-      val env = Env()
+      val env = Env.empty
       assertThrows[EllsDefinitionNotFound](env.set(id1, bTrue))
     }
 
     "will return value on get if it was defined" in {
-      val env = Env()
+      val env = Env.empty
       env.define(id1, bTrue)
       env.get(id1) shouldEqual bTrue
     }
 
     "will search definitions recursive" in {
-      val parent = Env()
+      val parent = Env.empty
       val child = Env(parent = Some(parent))
 
       parent.define(id1, bTrue)
@@ -40,7 +40,7 @@ class EnvSpec extends FreeSpec with Matchers {
     }
 
     "will update parents definition if it exists" in {
-      val parent = Env()
+      val parent = Env.empty
       val child = Env(parent = Some(parent))
 
       parent.define(id1, bTrue)
@@ -50,7 +50,7 @@ class EnvSpec extends FreeSpec with Matchers {
     }
 
     "should make new definitions in child environment when same named definition are present in parent" in {
-      val parent = Env()
+      val parent = Env.empty
       val child = Env(parent = Some(parent))
       parent.define(id1, bTrue)
       child.define(id1, bFalse)

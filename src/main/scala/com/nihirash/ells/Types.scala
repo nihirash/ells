@@ -4,6 +4,8 @@ sealed trait EllsType {
   def toNumber: EllsNumber
 
   def isNil: Boolean
+
+  def toIdentifier: EllsIdentifier = throw EllsTypesException("Can't cast data to identifiers")
 }
 
 sealed trait EllsScalar extends EllsType
@@ -103,12 +105,14 @@ case class EllsString(v: String) extends EllsScalar {
   override def isNil: Boolean = v.isEmpty
 }
 
-case class EllsIdentifier(v: String) extends EllsScalar {
+case class EllsIdentifier(v: String) extends EllsType {
   override def toString: String = v
 
   override def toNumber: EllsNumber = throw EllsTypesException("Can't cast identifier to number")
 
   override def isNil: Boolean = false
+
+  override def toIdentifier: EllsIdentifier = this
 }
 
 case class EllsBoolean(b: Boolean) extends EllsScalar {

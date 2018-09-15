@@ -2,7 +2,7 @@ package com.nihirash.ells
 
 import scala.collection.mutable.{Map => MutableMap}
 
-case class Env(parent: Option[Env] = None, definitions: MutableMap[EllsIdentifier, EllsType] = MutableMap.empty) {
+case class Env(parent: Option[Env], definitions: MutableMap[EllsIdentifier, EllsType] = MutableMap.empty) {
   def define(id: EllsIdentifier, value: EllsType): Unit = definitions.update(id, value)
 
   def get(id: EllsIdentifier): EllsType = definitions.getOrElse(
@@ -15,4 +15,8 @@ case class Env(parent: Option[Env] = None, definitions: MutableMap[EllsIdentifie
       case Some(_) => definitions.update(id, value)
       case None => parent.getOrElse(throw EllsDefinitionNotFound()).set(id, value)
     }
+}
+
+object Env {
+  def empty: Env = Env(None, MutableMap.empty)
 }

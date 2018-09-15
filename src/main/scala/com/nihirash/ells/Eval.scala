@@ -3,41 +3,73 @@ package com.nihirash.ells
 class Eval {
   type Args = List[EllsType]
 
-  def eval(exprs: Seq[EllsType]): EllsType = exprs.map(evalExpression).last
+  def eval(exprs: Seq[EllsType], env: Env = Env.empty): EllsType = exprs.map(e => evalExpression(e, env)).last
 
-  def evalExpression(e: EllsType): EllsType = e match {
+  def evalExpression(e: EllsType, env: Env): EllsType = e match {
     case e: EllsScalar => e
-    case l: EllsList => evalForm(l)
+    case l: EllsList => evalForm(l, env)
+    case i: EllsIdentifier => env.get(i)
     case _ => throw new Exception("Can't eval")
   }
 
-  private def evalForm(l: EllsList): EllsType = {
+  private def evalForm(l: EllsList, env: Env): EllsType = {
     val car = l.v.head
     val cdr = l.v.tail
     car match {
-      case i: EllsIdentifier => evalCall(i, cdr)
+      case i: EllsIdentifier => evalCall(i, cdr, env)
       case f => throw new RuntimeException(s"Cant eval form: $l")
     }
   }
 
-  private def evalCall(id: EllsIdentifier, args: Args): EllsType = id.v match {
+  private def evalCall(id: EllsIdentifier, args: Args, env: Env): EllsType = id.v match {
     case "quote" => quote(args)
-    case "+" => plus(args)
-    case "-" => minus(args)
-    case "*" => mult(args)
-    case "/" => divide(args)
-    case "list" => EllsList(args.map(evalExpression))
-    case "head" => listHead(args)
-    case "tail" => listTail(args)
-    case "min" => listMin(args)
-    case "max" => listMax(args)
-    case ">" => more(args)
-    case "<" => less(args)
-    case "=" => isEqual(args)
-    case "do" => eval(args)
-    case "if" => ifForm(args)
+    case "+" => plus(args, env)
+    case "-" => minus(args, env)
+    case "*" => mult(args, env)
+    case "/" => divide(args, env)
+    case "list" => EllsList(args.map(evalExpression(_, env)))
+    case "head" => listHead(args, env)
+    case "tail" => listTail(args, env)
+    case "min" => listMin(args, env)
+    case "max" => listMax(args, env)
+    case ">" => more(args, env)
+    case "<" => less(args, env)
+    case "=" => isEqual(args, env)
+    case "do" => eval(args, env)
+    case "if" => ifForm(args, env)
+    case "def" => defForm(args, env)
+    case "set" => setForm(args, env)
     case f => throw EllsEvalException(s"Can't eval '$f' form")
   }
+
+  private def defForm(args: Args, env: Env): EllsType = {
+    val id = args.head
+    id match {
+      case id: EllsIdentifier =>
+        args.tail match {
+          case value :: Nil =>
+            env.define(id, evalExpression(value, env))
+            value
+          case _ => throw EllsArityException("Expected one expression")
+        }
+      case _ => throw EllsTypesException("Expected identifier")
+    }
+  }
+
+  private def setForm(args: Args, env: Env): EllsType = {
+    val id = args.head
+    id match {
+      case id: EllsIdentifier =>
+        args.tail match {
+          case value :: Nil =>
+            env.set(id, evalExpression(value, env))
+            value
+          case _ => throw EllsArityException("Expected one expression")
+        }
+      case _ => throw EllsTypesException("Expected identifier")
+    }
+  }
+
 
   private def quote(tail: Args): EllsType = tail match {
     case h :: Nil => h
@@ -45,28 +77,28 @@ class Eval {
     case Nil => throw EllsArityException()
   }
 
-  private def plus(tail: Args): EllsType = {
-    val args = tail.map(v => evalExpression(v).toNumber)
+  private def plus(tail: Args, env: Env): EllsType = {
+    val args = tail.map(v => evalExpression(v, env).toNumber)
     args.tail.fold(args.head)((l: EllsNumber, r: EllsNumber) => l + r)
   }
 
-  private def minus(tail: Args): EllsType = {
-    val args = tail.map(v => evalExpression(v).toNumber)
+  private def minus(tail: Args, env: Env): EllsType = {
+    val args = tail.map(v => evalExpression(v, env).toNumber)
     args.tail.fold(args.head)((l: EllsNumber, r: EllsNumber) => l - r)
   }
 
-  private def mult(tail: Args): EllsType = {
-    val args = tail.map(v => evalExpression(v).toNumber)
+  private def mult(tail: Args, env: Env): EllsType = {
+    val args = tail.map(v => evalExpression(v, env).toNumber)
     args.tail.fold(args.head)((l: EllsNumber, r: EllsNumber) => l * r)
   }
 
-  private def divide(tail: Args): EllsType = {
-    val args = tail.map(v => evalExpression(v).toNumber)
+  private def divide(tail: Args, env: Env): EllsType = {
+    val args = tail.map(v => evalExpression(v, env).toNumber)
     args.tail.fold(args.head)((l: EllsNumber, r: EllsNumber) => if (!r.isNil) l / r else throw new ArithmeticException("Division by zero"))
   }
 
-  private def listHead(tail: Args): EllsType = {
-    tail.map(evalExpression) match {
+  private def listHead(tail: Args, env: Env): EllsType = {
+    tail.map(evalExpression(_, env)) match {
       case v :: Nil => v match {
         case EllsList(l) => l.head
         case _ => throw EllsTypesException("Only list are acceptable")
@@ -75,7 +107,7 @@ class Eval {
     }
   }
 
-  private def listTail(tail: Args): EllsType = tail.map(evalExpression) match {
+  private def listTail(tail: Args, env: Env): EllsType = tail.map(evalExpression(_, env)) match {
     case v :: Nil => v match {
       case EllsList(l) => EllsList(l.tail)
       case _ => throw EllsTypesException("Only non-empty lists are acceptable")
@@ -84,7 +116,7 @@ class Eval {
   }
 
 
-  private def listMin(tail: Args): EllsType = tail.map(evalExpression) match {
+  private def listMin(tail: Args, env: Env): EllsType = tail.map(evalExpression(_, env)) match {
     case x :: Nil => x match {
       case EllsList(l) => l.map(_.toNumber).min
       case _ => throw EllsTypesException("Only numeric list are acceptable")
@@ -92,7 +124,7 @@ class Eval {
     case _ => throw EllsArityException("Only one lisp acceptable")
   }
 
-  private def listMax(tail: Args): EllsType = tail.map(evalExpression) match {
+  private def listMax(tail: Args, env: Env): EllsType = tail.map(evalExpression(_, env)) match {
     case x :: Nil => x match {
       case EllsList(l) => l.map(_.toNumber).max
       case _ => throw EllsTypesException("Only numeric list are acceptable")
@@ -100,34 +132,34 @@ class Eval {
     case _ => throw EllsArityException("Only one lisp acceptable")
   }
 
-  private def more(tail: Args): EllsType =
-    tail.map(evalExpression(_).toNumber) match {
+  private def more(tail: Args, env: Env): EllsType =
+    tail.map(evalExpression(_, env).toNumber) match {
       case car :: cdr :: Nil => EllsBoolean(car > cdr)
       case _ => throw EllsArityException("This is binary operation")
     }
 
-  private def less(tail: Args): EllsType =
-    tail.map(evalExpression(_).toNumber) match {
+  private def less(tail: Args, env: Env): EllsType =
+    tail.map(evalExpression(_, env).toNumber) match {
       case car :: cdr :: Nil => EllsBoolean(car < cdr)
       case _ => throw EllsArityException("This is binary operation")
     }
 
-  private def isEqual(tail: Args): EllsType =
-    tail.map(evalExpression) match {
+  private def isEqual(tail: Args, env: Env): EllsType =
+    tail.map(evalExpression(_, env)) match {
       case car :: cdr :: Nil => EllsBoolean(car == cdr)
       case _ => throw EllsArityException("This is binary operation")
     }
 
-  private def ifForm(tail: Args): EllsType =
+  private def ifForm(tail: Args, env: Env): EllsType =
     tail match {
       case expression :: rightCase :: leftCase :: Nil =>
-        if (!evalExpression(expression).isNil)
-          evalExpression(rightCase)
+        if (!evalExpression(expression, env).isNil)
+          evalExpression(rightCase, env)
         else
-          evalExpression(leftCase)
+          evalExpression(leftCase, env)
       case expression :: rightCase :: Nil =>
-        if (!evalExpression(expression).isNil)
-          evalExpression(rightCase)
+        if (!evalExpression(expression, env).isNil)
+          evalExpression(rightCase, env)
         else
           EllsNil()
       case _ => throw EllsArityException("Wrong IF-form")

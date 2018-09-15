@@ -14,7 +14,7 @@ class EvalSpec extends FreeSpec with Matchers {
 
       val toEval = Seq(doubleVal, longVal, stringVal, nilVal)
 
-      toEval.map(eval.evalExpression) shouldEqual toEval
+      toEval.map(eval.evalExpression(_, Env.empty)) shouldEqual toEval
 
     }
 
@@ -22,13 +22,13 @@ class EvalSpec extends FreeSpec with Matchers {
       "will return list forms unequaled" in {
         val toParse = "(quote (+ 1 2 3))"
         val parsed = Parser(toParse)
-        parsed.map(x => eval.evalExpression(x.head)) shouldEqual Right(EllsList(List(EllsIdentifier("+"), EllsLong(1), EllsLong(2), EllsLong(3))))
+        parsed.map(x => eval.evalExpression(x.head, Env.empty)) shouldEqual Right(EllsList(List(EllsIdentifier("+"), EllsLong(1), EllsLong(2), EllsLong(3))))
       }
 
       "will fail on more than one arg" in {
         val toParse = "(quote 1 2 3)"
         val parsed = Parser(toParse)
-        assertThrows[EllsArityException](parsed.map(value => eval.evalExpression(value.head)))
+        assertThrows[EllsArityException](parsed.map(value => eval.evalExpression(value.head, Env.empty)))
       }
     }
 
@@ -36,14 +36,14 @@ class EvalSpec extends FreeSpec with Matchers {
       "should sum all elements" in {
         val toParse = "(+ 1.0 2.2 (+ 1 2) -1)"
         val parsed = Parser(toParse)
-        parsed.map(value => eval.evalExpression(value.head)) shouldEqual Right(EllsDouble(5.2))
+        parsed.map(value => eval.evalExpression(value.head, Env.empty)) shouldEqual Right(EllsDouble(5.2))
 
       }
       "should fail on non numeric arguments" in {
         val toParse = "(+ 1 \"alex\")"
         val parsed = Parser(toParse)
         parsed match {
-          case Right(value) => assertThrows[EllsTypesException](eval.evalExpression(value.head))
+          case Right(value) => assertThrows[EllsTypesException](eval.evalExpression(value.head, Env.empty))
           case _ => fail("Parsing failure")
         }
       }
@@ -53,7 +53,7 @@ class EvalSpec extends FreeSpec with Matchers {
       "should subtract values" in {
         val toParse = "(- 5 (+ 1 2))"
         val parsed = Parser(toParse)
-        parsed.map(eval.eval) shouldEqual Right(EllsLong(2))
+        parsed.map(eval.eval(_, Env.empty)) shouldEqual Right(EllsLong(2))
       }
     }
 
@@ -61,7 +61,7 @@ class EvalSpec extends FreeSpec with Matchers {
       "should multiply values" in {
         val toParse = "(* 3 (+ 1 2) (- 11 1))"
         val parsed = Parser(toParse)
-        parsed.map(eval.eval) shouldEqual Right(EllsLong(90))
+        parsed.map(eval.eval(_, Env.empty)) shouldEqual Right(EllsLong(90))
       }
     }
 
@@ -69,14 +69,14 @@ class EvalSpec extends FreeSpec with Matchers {
       "should divide values" in {
         val toParse = "(/ 9.0 (+ 1 2) (- 11 1))"
         val parsed = Parser(toParse)
-        parsed.map(eval.eval) shouldEqual Right(EllsDouble(0.3))
+        parsed.map(eval.eval(_, Env.empty)) shouldEqual Right(EllsDouble(0.3))
       }
 
       "should fail on division on zero" in {
         val toParse = "(/ 9.0 0)"
         val parsed = Parser(toParse)
         parsed match {
-          case Right(value) => assertThrows[ArithmeticException](eval.evalExpression(value.head))
+          case Right(value) => assertThrows[ArithmeticException](eval.evalExpression(value.head, Env.empty))
           case _ => fail("Parsing failure")
         }
       }
@@ -86,7 +86,7 @@ class EvalSpec extends FreeSpec with Matchers {
       "will create list from arguments" in {
         val toParse = "(list \"hello, world\" (+ 2 2) (- 1 3))"
         val parsed = Parser(toParse)
-        parsed.map(eval.eval) shouldEqual Right(EllsList(List(
+        parsed.map(eval.eval(_, Env.empty)) shouldEqual Right(EllsList(List(
           EllsString("hello, world"),
           EllsLong(4),
           EllsLong(-2)
@@ -97,14 +97,14 @@ class EvalSpec extends FreeSpec with Matchers {
     "head" - {
       "will return first element of list" in {
         val toParse = "(head (list 1 2 3))"
-        Parser(toParse).map(eval.eval) shouldEqual Right(EllsLong(1))
+        Parser(toParse).map(eval.eval(_, Env.empty)) shouldEqual Right(EllsLong(1))
       }
     }
 
     "tail" - {
       "will return tail of list" in {
         val toParse = "(tail (quote (1 2 3)))"
-        Parser(toParse).map(eval.eval) shouldEqual Right(EllsList(List(
+        Parser(toParse).map(eval.eval(_, Env.empty)) shouldEqual Right(EllsList(List(
           EllsLong(2), EllsLong(3)
         )))
       }
@@ -117,67 +117,67 @@ class EvalSpec extends FreeSpec with Matchers {
             |   true)
           """.stripMargin
 
-        Parser(toParse).map(eval.eval) shouldEqual Right(EllsBoolean(true))
+        Parser(toParse).map(eval.eval(_, Env.empty)) shouldEqual Right(EllsBoolean(true))
       }
     }
 
     "min" - {
       "will find minimal value of arguments" in {
         val toParse = "(min (list 4 2 3.3))"
-        Parser(toParse).map(eval.eval) shouldEqual Right(EllsLong(2))
+        Parser(toParse).map(eval.eval(_, Env.empty)) shouldEqual Right(EllsLong(2))
       }
     }
 
     "max" - {
       "will find maximal value of arguments" in {
         val toParse = "(max (list 0.75 (- 1 0.9) 3.3))"
-        Parser(toParse).map(eval.eval) shouldEqual Right(EllsDouble(3.3))
+        Parser(toParse).map(eval.eval(_, Env.empty)) shouldEqual Right(EllsDouble(3.3))
       }
     }
 
     "operator >" - {
       "will return true is first argument more than second" in {
         val toParse = "(> 3 1)"
-        Parser(toParse).map(eval.eval) shouldEqual Right(EllsBoolean(true))
+        Parser(toParse).map(eval.eval(_, Env.empty)) shouldEqual Right(EllsBoolean(true))
       }
 
       "will return false is first argument less than second" in {
         val toParse = "(> 0 1)"
-        Parser(toParse).map(eval.eval) shouldEqual Right(EllsBoolean(false))
+        Parser(toParse).map(eval.eval(_, Env.empty)) shouldEqual Right(EllsBoolean(false))
       }
     }
 
     "operator <" - {
       "will return true is first argument less than second" in {
         val toParse = "(< 3 11.2)"
-        Parser(toParse).map(eval.eval) shouldEqual Right(EllsBoolean(true))
+        Parser(toParse).map(eval.eval(_, Env.empty)) shouldEqual Right(EllsBoolean(true))
       }
 
       "will return false is first argument more than second" in {
         val toParse = "(< 12.3 3)"
-        Parser(toParse).map(eval.eval) shouldEqual Right(EllsBoolean(false))
+        Parser(toParse).map(eval.eval(_, Env.empty)) shouldEqual Right(EllsBoolean(false))
       }
     }
 
     "operator =" - {
       "will return true if values are equal with numberic types" in {
         val toParse = "(= 1 1.0)"
-        Parser(toParse).map(eval.eval) shouldEqual Right(EllsBoolean(true))
+        Parser(toParse).map(eval.eval(_, Env.empty)) shouldEqual Right(EllsBoolean(true))
       }
 
       "will return true if values are equal with strings" in {
         val toParse = "(= \"hello\" \"hello\")"
-        Parser(toParse).map(eval.eval) shouldEqual Right(EllsBoolean(true))
+        Parser(toParse).map(eval.eval(_, Env.empty)) shouldEqual Right(EllsBoolean(true))
       }
 
       "will return false on different data types" in {
         val toParse = "(= 1 \"hello\")"
-        Parser(toParse).map(eval.eval) shouldEqual Right(EllsBoolean(false))
+        Parser(toParse).map(eval.eval(_, Env.empty)) shouldEqual Right(EllsBoolean(false))
       }
 
       "will return false on non equal values" in {
         val toParse = "(= 1 1.2)"
-        Parser(toParse).map(eval.eval) shouldEqual Right(EllsBoolean(false))
+        Parser(toParse).map(eval.eval(_, Env.empty)) shouldEqual Right(EllsBoolean(false))
       }
     }
 
@@ -190,7 +190,7 @@ class EvalSpec extends FreeSpec with Matchers {
             |   (- 2 2))
           """.stripMargin
 
-        Parser(toParse).map(eval.eval) shouldEqual Right(EllsDouble(4))
+        Parser(toParse).map(eval.eval(_, Env.empty)) shouldEqual Right(EllsDouble(4))
       }
 
       "will return left-form if expression is nil" in {
@@ -201,7 +201,7 @@ class EvalSpec extends FreeSpec with Matchers {
             |   (* 2 8))
           """.stripMargin
 
-        Parser(toParse).map(eval.eval) shouldEqual Right(EllsLong(16))
+        Parser(toParse).map(eval.eval(_, Env.empty)) shouldEqual Right(EllsLong(16))
       }
 
       "will return nil if left-form absent but expression is nil" in {
@@ -211,7 +211,7 @@ class EvalSpec extends FreeSpec with Matchers {
             |   (* 2 8))
           """.stripMargin
 
-        Parser(toParse).map(eval.eval) shouldEqual Right(EllsNil())
+        Parser(toParse).map(eval.eval(_, Env.empty)) shouldEqual Right(EllsNil())
       }
 
       "will return right form when left-form absent and expression isn't nil" in {
@@ -225,7 +225,7 @@ class EvalSpec extends FreeSpec with Matchers {
             |   ))
           """.stripMargin
 
-        Parser(toParse).map(eval.eval) shouldEqual Right(EllsLong(8))
+        Parser(toParse).map(eval.eval(_, Env.empty)) shouldEqual Right(EllsLong(8))
       }
     }
   }
@@ -240,7 +240,57 @@ class EvalSpec extends FreeSpec with Matchers {
           |     (+ 2 3))
         """.stripMargin
 
-      Parser(toParse).map(eval.eval) shouldEqual Right(EllsLong(5))
+      Parser(toParse).map(eval.eval(_, Env.empty)) shouldEqual Right(EllsLong(5))
+    }
+  }
+
+  "def" - {
+    "will define in current env definition" in {
+      val toParse =
+        """
+          |(def x (* 2 5 6))
+          |x
+        """.stripMargin
+      val env = Env.empty
+
+      Parser(toParse).map(eval.eval(_, env)) shouldEqual Right(EllsDouble(60))
+    }
+
+    "will redefine old value in current when you call def twice but safes parent level definition" in {
+      val toParse =
+        """
+          |(def x nil)
+          |(def x (* 2 5 6))
+          |x
+        """.stripMargin
+      val id = EllsIdentifier("x")
+      val bTrue = EllsBoolean(true)
+      val parent = Env(None, collection.mutable.Map(id -> bTrue))
+      val env = Env(parent = Some(parent))
+
+      Parser(toParse).map(eval.eval(_, env)) shouldEqual Right(EllsDouble(60))
+      parent.definitions should contain theSameElementsAs Map(id -> bTrue)
+    }
+  }
+
+  "set" - {
+    "will redefine value searched lexicaly" in {
+      val toParse =
+        """
+          |(def x (+ 5 5))
+          |(set x 15)
+          |(set y (* 2 8))
+          |(list x y)
+        """.stripMargin
+      val parent = Env(None, collection.mutable.Map(EllsIdentifier("y") -> EllsDouble(5)))
+      val env = Env(parent = Some(parent))
+
+      Parser(toParse).map(eval.eval(_, env)) shouldEqual Right(EllsList(List(EllsDouble(15), EllsDouble(16))))
+    }
+
+    "will fail on absent definitions" in {
+      val toParse = "(set x 100500)"
+      assertThrows[EllsDefinitionNotFound](Parser(toParse).map(eval.eval(_, Env.empty)))
     }
   }
 
@@ -256,7 +306,7 @@ class EvalSpec extends FreeSpec with Matchers {
           | (+ 1 (+ 2 3 4)))
           |"But returns this string"
         """.stripMargin
-      Parser(toParse).map(eval.eval) shouldEqual Right(EllsString("But returns this string"))
+      Parser(toParse).map(eval.eval(_, Env.empty)) shouldEqual Right(EllsString("But returns this string"))
     }
   }
 }
