@@ -5,3 +5,5 @@ final case class EllsTypesException(message: String = "Non expected type receive
 final case class EllsArityException(message: String = "Wrong number of args passed", cause: Throwable = None.orNull) extends RuntimeException(message, cause)
 
 final case class EllsEvalException(message: String = "Can't eval form", cause: Throwable = None.orNull) extends RuntimeException(message, cause)
+
+final case class EllsDefinitionNotFound(message: String = "Trying to eval undefined value", cause: Throwable = None.orNull) extends RuntimeException(message, cause)
