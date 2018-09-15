@@ -96,14 +96,14 @@ class EvalSpec extends FreeSpec with Matchers {
 
     "min" - {
       "will find minimal value of arguments" in {
-        val toParse = "(min 4 2 3.3)"
+        val toParse = "(min (list 4 2 3.3))"
         Parser(toParse).map(eval.eval) shouldEqual Right(EllsLong(2))
       }
     }
 
     "max" - {
       "will find maximal value of arguments" in {
-        val toParse = "(max 0.75 (- 1 0.9) 3.3)"
+        val toParse = "(max (list 0.75 (- 1 0.9) 3.3))"
         Parser(toParse).map(eval.eval) shouldEqual Right(EllsDouble(3.3))
       }
     }

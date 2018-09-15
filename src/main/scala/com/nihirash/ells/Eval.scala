@@ -43,9 +43,22 @@ class Eval {
 
     case "list" => EllsList(tail.map(evalExpression))
 
-    case "min" => tail.map(evalExpression(_).toNumber).min
+    case "min" =>
+      tail.map(evalExpression) match {
+        case x :: Nil => x match {
+          case EllsList(l) => l.map(_.toNumber).min
+          case _ => throw EllsTypesException("Only numeric list are acceptable")
+        }
+        case _ => throw EllsArityException("Only one lisp acceptable")
+      }
 
-    case "max" => tail.map(evalExpression(_).toNumber).max
+    case "max" => tail.map(evalExpression) match {
+      case x :: Nil => x match {
+        case EllsList(l) => l.map(_.toNumber).max
+        case _ => throw EllsTypesException("Only numeric list are acceptable")
+      }
+      case _ => throw EllsArityException("Only one lisp acceptable")
+    }
 
     case ">" =>
       tail.map(evalExpression(_).toNumber) match {
