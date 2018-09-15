@@ -81,6 +81,140 @@ class EvalSpec extends FreeSpec with Matchers {
         }
       }
     }
+
+    "list" - {
+      "will create list from arguments" in {
+        val toParse = "(list \"hello, world\" (+ 2 2) (- 1 3))"
+        val parsed = Parser(toParse)
+        parsed.map(eval.eval) shouldEqual Right(EllsList(List(
+          EllsString("hello, world"),
+          EllsLong(4),
+          EllsLong(-2)
+        )))
+      }
+    }
+
+    "min" - {
+      "will find minimal value of arguments" in {
+        val toParse = "(min 4 2 3.3)"
+        Parser(toParse).map(eval.eval) shouldEqual Right(EllsLong(2))
+      }
+    }
+
+    "max" - {
+      "will find maximal value of arguments" in {
+        val toParse = "(max 0.75 (- 1 0.9) 3.3)"
+        Parser(toParse).map(eval.eval) shouldEqual Right(EllsDouble(3.3))
+      }
+    }
+
+    "operator >" - {
+      "will return true is first argument more than second" in {
+        val toParse = "(> 3 1)"
+        Parser(toParse).map(eval.eval) shouldEqual Right(EllsBoolean(true))
+      }
+
+      "will return false is first argument less than second" in {
+        val toParse = "(> 0 1)"
+        Parser(toParse).map(eval.eval) shouldEqual Right(EllsBoolean(false))
+      }
+    }
+
+    "operator <" - {
+      "will return true is first argument less than second" in {
+        val toParse = "(< 3 11.2)"
+        Parser(toParse).map(eval.eval) shouldEqual Right(EllsBoolean(true))
+      }
+
+      "will return false is first argument more than second" in {
+        val toParse = "(< 12.3 3)"
+        Parser(toParse).map(eval.eval) shouldEqual Right(EllsBoolean(false))
+      }
+    }
+
+    "operator =" - {
+      "will return true if values are equal with numberic types" in {
+        val toParse = "(= 1 1.0)"
+        Parser(toParse).map(eval.eval) shouldEqual Right(EllsBoolean(true))
+      }
+
+      "will return true if values are equal with strings" in {
+        val toParse = "(= \"hello\" \"hello\")"
+        Parser(toParse).map(eval.eval) shouldEqual Right(EllsBoolean(true))
+      }
+
+      "will return false on different data types" in {
+        val toParse = "(= 1 \"hello\")"
+        Parser(toParse).map(eval.eval) shouldEqual Right(EllsBoolean(false))
+      }
+
+      "will return false on non equal values" in {
+        val toParse = "(= 1 1.2)"
+        Parser(toParse).map(eval.eval) shouldEqual Right(EllsBoolean(false))
+      }
+    }
+
+    "if-form" - {
+      "will return right-form if expression isn't nil" in {
+        val toParse =
+          """
+            |(if (= 1 (- 2 1))
+            |   (+ 2 2)
+            |   (- 2 2))
+          """.stripMargin
+
+        Parser(toParse).map(eval.eval) shouldEqual Right(EllsDouble(4))
+      }
+
+      "will return left-form if expression is nil" in {
+        val toParse =
+          """
+            |(if nil
+            |   (+ 2 2)
+            |   (* 2 8))
+          """.stripMargin
+
+        Parser(toParse).map(eval.eval) shouldEqual Right(EllsLong(16))
+      }
+
+      "will return nil if left-form absent but expression is nil" in {
+        val toParse =
+          """
+            |(if (> 2 16)
+            |   (* 2 8))
+          """.stripMargin
+
+        Parser(toParse).map(eval.eval) shouldEqual Right(EllsNil())
+      }
+
+      "will return right form when left-form absent and expression isn't nil" in {
+        val toParse =
+          """
+            |(if (< 2 16)
+            |   (do
+            |     "I'm fine!"
+            |     (* 3 3)
+            |     (+ 4 4)
+            |   ))
+          """.stripMargin
+
+        Parser(toParse).map(eval.eval) shouldEqual Right(EllsLong(8))
+      }
+    }
+  }
+
+  "do-form" - {
+    "will eval code block where waited one expression" in {
+      val toParse =
+        """
+          |(if (do
+          |       "There some strange code block"
+          |       (+ 2 2))
+          |     (+ 2 3))
+        """.stripMargin
+
+      Parser(toParse).map(eval.eval) shouldEqual Right(EllsLong(5))
+    }
   }
 
   "eval" - {

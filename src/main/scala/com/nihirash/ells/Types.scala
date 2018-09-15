@@ -116,5 +116,5 @@ case class EllsBoolean(b: Boolean) extends EllsScalar {
 
   override def toNumber: EllsNumber = if (b) EllsLong(1) else EllsLong(0)
 
-  override def isNil: Boolean = b
+  override def isNil: Boolean = !b
 }

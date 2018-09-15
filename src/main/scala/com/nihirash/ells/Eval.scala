@@ -14,7 +14,7 @@ class Eval {
     val cdr = l.v.tail
     car match {
       case i: EllsIdentifier => evalCall(i, cdr)
-      case _ => throw new RuntimeException("Cant eval form")
+      case f => throw new RuntimeException(s"Cant eval form: $l")
     }
   }
 
@@ -36,5 +36,38 @@ class Eval {
     case "/" =>
       val args = tail.map(v => evalExpression(v).toNumber)
       args.tail.fold(args.head)((l: EllsNumber, r: EllsNumber) => if (!r.isNil) l / r else throw new ArithmeticException("Division by zero"))
+    case "list" => EllsList(tail.map(evalExpression))
+    case "min" => tail.map(evalExpression(_).toNumber).min
+    case "max" => tail.map(evalExpression(_).toNumber).max
+    case ">" =>
+      tail.map(evalExpression(_).toNumber) match {
+        case car :: cdr :: Nil => EllsBoolean(car > cdr)
+        case _ => throw EllsArityException("This is binary operation")
+      }
+    case "<" =>
+      tail.map(evalExpression(_).toNumber) match {
+        case car :: cdr :: Nil => EllsBoolean(car < cdr)
+        case _ => throw EllsArityException("This is binary operation")
+      }
+    case "=" =>
+      tail.map(evalExpression) match {
+        case car :: cdr :: Nil => EllsBoolean(car == cdr)
+        case _ => throw EllsArityException("This is binary operation")
+      }
+    case "do" => eval(tail)
+    case "if" =>
+      tail match {
+        case expression :: rightCase :: leftCase :: Nil =>
+          if (!evalExpression(expression).isNil)
+            evalExpression(rightCase)
+          else
+            evalExpression(leftCase)
+        case expression :: rightCase :: Nil =>
+          if (!evalExpression(expression).isNil)
+            evalExpression(rightCase)
+          else
+            EllsNil()
+        case _ => throw EllsArityException("Wrong IF-form")
+      }
   }
 }
