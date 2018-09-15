@@ -100,7 +100,7 @@ case class EllsString(v: String) extends EllsScalar {
 
   override def toNumber: EllsNumber = throw EllsTypesException("Can't cast string to number")
 
-  override def isNil = v.isEmpty
+  override def isNil: Boolean = v.isEmpty
 }
 
 case class EllsIdentifier(v: String) extends EllsScalar {
