@@ -28,10 +28,18 @@ sealed trait EllsNumber extends EllsScalar with Ordered[EllsNumber] {
   def toNumber: EllsNumber = this
 }
 
+case class EllsFunction(args: List[EllsIdentifier], body: Seq[EllsType]) extends EllsType {
+  override def toNumber: EllsNumber = throw EllsTypesException("Cannot cast function to number")
+
+  override def isNil: Boolean = false
+}
+
 case class EllsNil() extends EllsScalar {
   override def toNumber: EllsNumber = EllsLong(0)
 
   override def isNil: Boolean = true
+
+  override def toString: String = "NIL"
 }
 
 case class EllsList(v: List[EllsType]) extends EllsType {

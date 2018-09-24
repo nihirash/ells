@@ -348,6 +348,55 @@ class EvalSpec extends FreeSpec with Matchers {
         )))
       }
     }
+
+    "fn" - {
+      "will return function without params, when it called with nil as params args" in {
+        val toParse =
+          """
+            |(fn () "hello, world")
+          """.stripMargin
+        Parser(toParse).map(eval.eval(_, Env.empty)) shouldEqual Right(
+          EllsFunction(List.empty, Seq(EllsString("hello, world")))
+        )
+      }
+    }
+
+    "defn" - {
+      "will defines function in local scope" in {
+        val toParse =
+          """
+            |(defn inc (x)
+            | (+ x 1))
+            |
+            | (inc 1)
+          """.stripMargin
+
+        Parser(toParse).map(eval.eval(_, Env.empty)) shouldEqual Right(EllsLong(2))
+      }
+    }
+
+    "named and anonymous functions" - {
+      "will eval it" in {
+        val toParse =
+          """
+            |(defn map (fun lst)
+            |    "This function applies function to every element of list and returns resulting list"
+            |    (defn in-map (lst acc)
+            |        (def h (head lst))
+            |        (if (tail lst)
+            |            (in-map (tail lst) (list-append acc (fun h)))
+            |            (list-append acc (fun h))))
+            |
+            |        (in-map lst ()))
+            |
+            |(map (fn (x) (+ x 1)) (list 0 1 2 3))
+          """.stripMargin
+
+        Parser(toParse).map(eval.eval(_, Env.empty)) shouldEqual Right(EllsList(List(
+          EllsLong(1), EllsLong(2), EllsLong(3), EllsLong(4)
+        )))
+      }
+    }
   }
 
 
