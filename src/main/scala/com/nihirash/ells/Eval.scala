@@ -1,5 +1,7 @@
 package com.nihirash.ells
 
+import scala.annotation.tailrec
+
 class Eval {
   type Args = List[EllsType]
 
@@ -30,6 +32,7 @@ class Eval {
     case "list" => EllsList(args.map(evalExpression(_, env)))
     case "head" => listHead(args, env)
     case "tail" => listTail(args, env)
+    case "list-append" => listAppend(args, env)
     case "min" => listMin(args, env)
     case "max" => listMax(args, env)
     case ">" => more(args, env)
@@ -37,6 +40,9 @@ class Eval {
     case "=" => isEqual(args, env)
     case "do" => eval(args, env)
     case "if" => ifForm(args, env)
+    case "and" => andForm(args, env)
+    case "or" => orForm(args, env)
+    case "not" => notForm(args, env)
     case "def" => defForm(args, env)
     case "set" => setForm(args, env)
     case f => throw EllsEvalException(s"Can't eval '$f' form")
@@ -101,6 +107,7 @@ class Eval {
     tail.map(evalExpression(_, env)) match {
       case v :: Nil => v match {
         case EllsList(l) => l.head
+        case EllsNil() => EllsNil()
         case _ => throw EllsTypesException("Only list are acceptable")
       }
       case _ => throw EllsArityException("Only one list are acceptable")
@@ -113,6 +120,15 @@ class Eval {
       case _ => throw EllsTypesException("Only non-empty lists are acceptable")
     }
     case _ => throw EllsArityException("Only one list are acceptable")
+  }
+
+  private def listAppend(tail: Args, env: Env): EllsType = {
+    val args = tail.map(evalExpression(_, env))
+    val head = args.head
+    head match {
+      case EllsList(v) => EllsList(v ++ args.tail)
+      case v: EllsType => EllsList(v +: args.tail)
+    }
   }
 
 
@@ -164,4 +180,25 @@ class Eval {
           EllsNil()
       case _ => throw EllsArityException("Wrong IF-form")
     }
+
+  @tailrec
+  private def andForm(args: Args, env: Env, acc: Boolean = false): EllsType = {
+    args match {
+      case h :: t => andForm(t, env, !evalExpression(h, env).isNil)
+      case Nil => EllsBoolean(acc)
+    }
+  }
+
+  @tailrec
+  private def orForm(args: Args, env: Env): EllsType = args match {
+    case Nil => EllsBoolean(false)
+    case h :: t =>
+      val headNil = evalExpression(h, env).isNil
+      if (headNil) orForm(t, env) else EllsBoolean(true)
+  }
+
+  private def notForm(args: Args, env: Env): EllsType = args match {
+    case h :: Nil => EllsBoolean(evalExpression(h, env).isNil)
+    case _ => throw EllsArityException("Expected one expression")
+  }
 }

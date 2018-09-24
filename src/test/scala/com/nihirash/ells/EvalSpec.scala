@@ -121,6 +121,22 @@ class EvalSpec extends FreeSpec with Matchers {
       }
     }
 
+    "append" - {
+      "will append elements to list" in {
+        val toParse = "(list-append (quote (1 2 3)) 4 5)"
+        Parser(toParse).map(eval.eval(_, Env.empty)) shouldEqual Right(EllsList(List(
+          EllsLong(1), EllsLong(2), EllsLong(3), EllsLong(4), EllsLong(5)
+        )))
+      }
+
+      "will create list and append elements if first argument aren't list" in {
+        val toParse = "(list-append 1 2 3 4 5)"
+        Parser(toParse).map(eval.eval(_, Env.empty)) shouldEqual Right(EllsList(List(
+          EllsLong(1), EllsLong(2), EllsLong(3), EllsLong(4), EllsLong(5)
+        )))
+      }
+    }
+
     "min" - {
       "will find minimal value of arguments" in {
         val toParse = "(min (list 4 2 3.3))"
@@ -228,71 +244,112 @@ class EvalSpec extends FreeSpec with Matchers {
         Parser(toParse).map(eval.eval(_, Env.empty)) shouldEqual Right(EllsLong(8))
       }
     }
-  }
+    "do-form" - {
+      "will eval code block where waited one expression" in {
+        val toParse =
+          """
+            |(if (do
+            |       "There some strange code block"
+            |       (+ 2 2))
+            |     (+ 2 3))
+          """.stripMargin
 
-  "do-form" - {
-    "will eval code block where waited one expression" in {
-      val toParse =
-        """
-          |(if (do
-          |       "There some strange code block"
-          |       (+ 2 2))
-          |     (+ 2 3))
-        """.stripMargin
+        Parser(toParse).map(eval.eval(_, Env.empty)) shouldEqual Right(EllsLong(5))
+      }
+    }
 
-      Parser(toParse).map(eval.eval(_, Env.empty)) shouldEqual Right(EllsLong(5))
+    "def" - {
+      "will define in current env definition" in {
+        val toParse =
+          """
+            |(def x (* 2 5 6))
+            |x
+          """.stripMargin
+        val env = Env.empty
+
+        Parser(toParse).map(eval.eval(_, env)) shouldEqual Right(EllsDouble(60))
+      }
+
+      "will redefine old value in current when you call def twice but safes parent level definition" in {
+        val toParse =
+          """
+            |(def x nil)
+            |(def x (* 2 5 6))
+            |x
+          """.stripMargin
+        val id = EllsIdentifier("x")
+        val bTrue = EllsBoolean(true)
+        val parent = Env(None, collection.mutable.Map(id -> bTrue))
+        val env = Env(parent = Some(parent))
+
+        Parser(toParse).map(eval.eval(_, env)) shouldEqual Right(EllsDouble(60))
+        parent.definitions should contain theSameElementsAs Map(id -> bTrue)
+      }
+    }
+
+    "set" - {
+      "will redefine value searched lexicaly" in {
+        val toParse =
+          """
+            |(def x (+ 5 5))
+            |(set x 15)
+            |(set y (* 2 8))
+            |(list x y)
+          """.stripMargin
+        val parent = Env(None, collection.mutable.Map(EllsIdentifier("y") -> EllsDouble(5)))
+        val env = Env(parent = Some(parent))
+
+        Parser(toParse).map(eval.eval(_, env)) shouldEqual Right(EllsList(List(EllsDouble(15), EllsDouble(16))))
+      }
+
+      "will fail on absent definitions" in {
+        val toParse = "(set x 100500)"
+        assertThrows[EllsDefinitionNotFound](Parser(toParse).map(eval.eval(_, Env.empty)))
+      }
+    }
+
+    "and" - {
+      "will eval arg by arg until get nil" in {
+        val toParse =
+          """
+            |(def x 1)
+            |(def y 2)
+            |(def z 3)
+            |(and (> y x) (< y z) (= z 3))
+          """.stripMargin
+
+        Parser(toParse).map(eval.eval(_, Env.empty)) shouldEqual Right(EllsBoolean(true))
+      }
+    }
+
+    "or" - {
+      "will stop evalation on first non nil value and return true" in {
+        val toParse =
+          """
+            |(or
+            | ()
+            | (+ 1 1)
+            | (/ 1 0))
+          """.stripMargin
+
+        Parser(toParse).map(eval.eval(_, Env.empty)) shouldEqual Right(EllsBoolean(true))
+      }
+    }
+
+    "not" - {
+      "will inverse expressions boolean value" in {
+        val toParse =
+          """
+            |(list (not true) (not ()) (not (not false)))
+          """.stripMargin
+
+        Parser(toParse).map(eval.eval(_, Env.empty)) shouldEqual Right(EllsList(List(
+          EllsBoolean(false), EllsBoolean(true), EllsBoolean(false)
+        )))
+      }
     }
   }
 
-  "def" - {
-    "will define in current env definition" in {
-      val toParse =
-        """
-          |(def x (* 2 5 6))
-          |x
-        """.stripMargin
-      val env = Env.empty
-
-      Parser(toParse).map(eval.eval(_, env)) shouldEqual Right(EllsDouble(60))
-    }
-
-    "will redefine old value in current when you call def twice but safes parent level definition" in {
-      val toParse =
-        """
-          |(def x nil)
-          |(def x (* 2 5 6))
-          |x
-        """.stripMargin
-      val id = EllsIdentifier("x")
-      val bTrue = EllsBoolean(true)
-      val parent = Env(None, collection.mutable.Map(id -> bTrue))
-      val env = Env(parent = Some(parent))
-
-      Parser(toParse).map(eval.eval(_, env)) shouldEqual Right(EllsDouble(60))
-      parent.definitions should contain theSameElementsAs Map(id -> bTrue)
-    }
-  }
-
-  "set" - {
-    "will redefine value searched lexicaly" in {
-      val toParse =
-        """
-          |(def x (+ 5 5))
-          |(set x 15)
-          |(set y (* 2 8))
-          |(list x y)
-        """.stripMargin
-      val parent = Env(None, collection.mutable.Map(EllsIdentifier("y") -> EllsDouble(5)))
-      val env = Env(parent = Some(parent))
-
-      Parser(toParse).map(eval.eval(_, env)) shouldEqual Right(EllsList(List(EllsDouble(15), EllsDouble(16))))
-    }
-
-    "will fail on absent definitions" in {
-      val toParse = "(set x 100500)"
-      assertThrows[EllsDefinitionNotFound](Parser(toParse).map(eval.eval(_, Env.empty)))
-    }
-  }
 
   "eval" - {
     "should return last value" in {
