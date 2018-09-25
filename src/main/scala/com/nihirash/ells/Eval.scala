@@ -12,7 +12,7 @@ class Eval {
     case e: EllsScalar => e
     case l: EllsList => evalForm(l, env)
     case i: EllsIdentifier => env.get(i)
-    case _ => throw new Exception("Can't eval")
+    case _ => throw new Exception(s"Can't eval $e")
   }
 
   private def evalForm(l: EllsList, env: Env): EllsType = {
@@ -62,7 +62,7 @@ class Eval {
     case _ => env.get(id) match {
       case EllsNil() => EllsNil()
       case f: EllsFunction => evalFunction(f, args.map(evalExpression(_, env)), env)
-      case _ => throw EllsEvalException(s"Can't eval form $id with $args")
+      case _ => throw EllsEvalException(s"Can't eval form '$id' with args '$args'")
     }
 
   }
