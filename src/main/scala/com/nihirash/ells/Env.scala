@@ -21,7 +21,7 @@ case class Env(parent: Option[Env], definitions: MutableMap[EllsIdentifier, Ells
 object Env {
   def empty: Env = Env(None, MutableMap.empty)
 
-  lazy val preDef: Env = {
+  lazy val preDefinedEnviroment: Env = {
     val code = Source.fromResource("stdlb.ells").getLines.mkString("\n")
     val env = empty
     val eval = new Eval
@@ -30,4 +30,6 @@ object Env {
       case Right(_) => env
     }
   }
+
+  lazy val preDef = preDefinedEnviroment.copy()
 }

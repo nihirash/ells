@@ -464,9 +464,41 @@ class EvalSpec extends FreeSpec with Matchers {
       }
     }
 
-    "to-string" - {
-      "will convert any type to string" in {
+    "string functions" - {
+      "to-string will convert any type to string" in {
         Parser("(to-string '(1 2 @(+ 1 2)))").map(eval.eval(_, Env.empty)) shouldEqual Right(EllsString("(1 2 3.0)"))
+      }
+
+      "string-append will append anything to string(will cast all to strings)" in {
+        Parser("(string-append \"test\" \"-\" 13)").map(eval.eval(_, Env.empty)) shouldEqual Right(EllsString("test-13"))
+      }
+
+      "split-string will split string by sepparator" in {
+        Parser(
+          """
+            |(map (fn (x) (to-number x)) (split-string "1,2,3" ","))
+          """.stripMargin)
+          .map(eval.eval(_, Env.preDef)) shouldEqual Right(EllsList(List(
+          EllsLong(1),
+          EllsLong(2),
+          EllsLong(3)
+        )))
+      }
+
+      "substring will gets substring from argument" in {
+        Parser(
+          """
+            |(substring "123456" 2 3)
+          """.stripMargin)
+          .map(eval.eval(_, Env.preDef)) shouldEqual Right(EllsString("345"))
+      }
+
+      "string-length will return string's length" in {
+        Parser(
+          """
+            |(string-length "some string")
+          """.stripMargin)
+          .map(eval.eval(_, Env.preDef)) shouldEqual Right(EllsLong(11))
       }
     }
 
@@ -477,6 +509,13 @@ class EvalSpec extends FreeSpec with Matchers {
 
       "will crash when converting imposible" in {
         assertThrows[NumberFormatException](Parser("(to-number \"isnt number\")").map(eval.eval(_, Env.empty)))
+      }
+    }
+
+    "to-long" - {
+      "will try convert value to long integer" in {
+        Parser("(to-long 1.33)").map(eval.eval(_, Env.empty)) shouldEqual Right(EllsLong(1))
+        Parser("(to-long \"666\")").map(eval.eval(_, Env.empty)) shouldEqual Right(EllsLong(666))
       }
     }
 

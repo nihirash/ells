@@ -67,6 +67,11 @@ class Eval {
     case "is-list?" => isList(args, env)
     case "to-string" => toStringForm(args, env)
     case "to-number" => toNumberForm(args, env)
+    case "to-long" => toLong(args, env)
+    case "string-length" => stringLength(args, env)
+    case "substring" => substringForm(args, env)
+    case "string-append" => stringAppend(args, env)
+    case "split-string" => splitString(args, env)
     case "throw" => throwForm(args, env)
     case "try" => tryForm(args, env)
     case "print" => printForm(args, env)
@@ -77,6 +82,38 @@ class Eval {
       case _ => throw EllsEvalException(s"Can't eval form '$id' with args '$args'")
     }
   }
+
+  private def splitString(args: Args, env: Env): EllsType = args match {
+    case str :: sepparator :: Nil => EllsList(
+      evalExpression(str, env)
+        .toString
+        .split(evalExpression(sepparator, env).toString)
+        .map(EllsString)
+        .toList
+    )
+    case _ => throw EllsArityException()
+  }
+
+  private def stringAppend(args: Args, env: Env): EllsType =
+    EllsString(args.map(evalExpression(_, env).toString).mkString(""))
+
+  private def substringForm(args: Args, env: Env): EllsType = args match {
+    case str :: begin :: length :: Nil =>
+      val strBegin = begin.toNumber.toLong.toInt
+      val strEnd = strBegin + length.toNumber.toLong.toInt
+
+      EllsString(str.toString.substring(strBegin, strEnd))
+
+    case _ => throw EllsArityException()
+  }
+
+  private def stringLength(args: Args, env: Env): EllsType = args match {
+    case arg :: Nil => EllsLong(evalExpression(arg, env).toString.length)
+    case _ => throw EllsArityException()
+  }
+
+  private def toLong(args: Args, env: Env): EllsType =
+    EllsLong(toNumberForm(args, env).toNumber.toLong)
 
   private def printForm(args: Args, env: Env): EllsType = {
     args.foreach(a => print(evalExpression(a, env)))
