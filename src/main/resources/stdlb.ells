@@ -1,7 +1,7 @@
 (defn map (fun lst) 
   "This function applies function to every element of list and returns resulting list"
-  (if (not (is-fun? fun)) throw "first argument must be function")
-  (if (not (is-list? lst)) throw "second argument must be a list")
+  (if (not (is-fun? fun)) (throw "first argument must be function"))
+  (if (not (is-list? lst)) (throw "second argument must be a list"))
   (defn in-map (lst acc)
         (def h (head lst))
         (if (tail lst)
@@ -12,8 +12,8 @@
 
 (defn filter (fun lst)
   "This function removes values from list if function on elemnent of list will return nil"
-  (if (not (is-fun? fun)) throw "first argument must be function")
-  (if (not (is-list? lst)) throw "second argument must be a list")
+  (if (not (is-fun? fun)) (throw "first argument must be function"))
+  (if (not (is-list? lst)) (throw "second argument must be a list"))
   (defn in-filter (lst acc)
     (def head-result (fun (head lst)))
     (def new-acc
@@ -46,4 +46,4 @@
 
 (defn get (var)
   "This function gets value from quoted variable name"
-  (eval '@var)
+  (eval '@var))
