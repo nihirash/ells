@@ -1,0 +1,49 @@
+(defn map (fun lst) 
+  "This function applies function to every element of list and returns resulting list"
+  (if (not (is-fun? fun)) throw "first argument must be function")
+  (if (not (is-list? lst)) throw "second argument must be a list")
+  (defn in-map (lst acc)
+        (def h (head lst))
+        (if (tail lst)
+            (in-map (tail lst) (list-append acc (fun h)))
+          (list-append acc (fun h))))
+
+  (in-map lst ()))
+
+(defn filter (fun lst)
+  "This function removes values from list if function on elemnent of list will return nil"
+  (if (not (is-fun? fun)) throw "first argument must be function")
+  (if (not (is-list? lst)) throw "second argument must be a list")
+  (defn in-filter (lst acc)
+    (def head-result (fun (head lst)))
+    (def new-acc
+	 (if head-result
+	     (list-append acc (head lst))
+	   acc))
+    (if (tail lst)
+	(in-filter (tail lst) new-acc)
+      new-acc))
+
+  (in-filter lst ()))
+
+(defn n-th (lst element)
+  "This function takes n-th element of list"
+  (if (not (is-list? lst)) (throw "first argument must be a list"))
+  (if (not (is-number? element)) (throw "second element must be a number"))
+  
+  (defn in-n-th (lst acc element)
+    (if (= acc element)
+	(head lst)
+      (if (tail lst)
+	  (in-n-th (tail lst) (+ 1 acc) element)
+	(throw "no such element"))))
+
+  (in-n-th lst 1 element))
+
+(defn set! (var val)
+  "This functions sets value to quoted variable name"
+  (eval '(set @var @val)))
+
+(defn get (var)
+  "This function gets value from quoted variable name"
+  (eval '@var)

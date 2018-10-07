@@ -450,6 +450,18 @@ class EvalSpec extends FreeSpec with Matchers {
       "is-fun? will return false when argument isn't function" in {
         Parser("(is-fun? nil)").map(eval.eval(_, Env.empty)) shouldEqual Right(EllsBoolean(false))
       }
+
+      "is-list? will return true when argument is list" in {
+        Parser("(is-list? '(hello))").map(eval.eval(_, Env.empty)) shouldEqual Right(EllsBoolean(true))
+      }
+
+      "is-list? will return true when argument is nil" in {
+        Parser("(is-list? ())").map(eval.eval(_, Env.empty)) shouldEqual Right(EllsBoolean(true))
+      }
+
+      "is-list? will return false when argument isn't list" in {
+        Parser("(is-list? 123)").map(eval.eval(_, Env.empty)) shouldEqual Right(EllsBoolean(false))
+      }
     }
 
     "to-string" - {
@@ -465,6 +477,25 @@ class EvalSpec extends FreeSpec with Matchers {
 
       "will crash when converting imposible" in {
         assertThrows[NumberFormatException](Parser("(to-number \"isnt number\")").map(eval.eval(_, Env.empty)))
+      }
+    }
+
+    "try/throw" - {
+      "throw will throw exception" in {
+        assertThrows[EllsRuntimeException](Parser("(throw \"Bye bye\")").map(eval.eval(_, Env.empty)))
+      }
+
+      "try will execute catch block on exception" in {
+        val code =
+          """
+            |(try
+            | (do
+            |   (throw "My exception")
+            |   1)
+            | (= exception "My exception"))
+          """.stripMargin
+
+        Parser(code).map(eval.eval(_)) shouldEqual Right(EllsBoolean(true))
       }
     }
 

@@ -64,14 +64,40 @@ class Eval {
     case "is-string?" => isString(args, env)
     case "is-boolean?" => isBoolean(args, env)
     case "is-fun?" => isFun(args, env)
+    case "is-list?" => isList(args, env)
     case "to-string" => toStringForm(args, env)
     case "to-number" => toNumberForm(args, env)
+    case "throw" => throwForm(args, env)
+    case "try" => tryForm(args, env)
+    case "print" => printForm(args, env)
     case "defn" => defnForm(args, env)
     case _ => env.get(id) match {
       case EllsNil() => EllsNil()
       case f: EllsFunction => evalFunction(f, args.map(evalExpression(_, env)), env)
       case _ => throw EllsEvalException(s"Can't eval form '$id' with args '$args'")
     }
+  }
+
+  private def printForm(args: Args, env: Env): EllsType = {
+    args.foreach(a => print(evalExpression(a, env)))
+    EllsNil()
+  }
+
+  private def tryForm(args: Args, env: Env): EllsType = args match {
+    case tryBlock :: catchBlock :: Nil =>
+      try {
+        evalExpression(tryBlock, env)
+      } catch {
+        case e: Throwable =>
+          val innerEnv = Env(parent = Some(env), MutableMap(EllsIdentifier("exception") -> EllsString(e.getLocalizedMessage)))
+          evalExpression(catchBlock, innerEnv)
+      }
+    case _ => throw EllsArityException()
+  }
+
+  private def throwForm(args: Args, env: Env): EllsType = args match {
+    case arg :: Nil => throw EllsRuntimeException(arg.toString)
+    case _ => throw EllsArityException()
   }
 
   private def toNumberForm(args: Args, env: Env): EllsType = args match {
@@ -81,6 +107,16 @@ class Eval {
 
   private def toStringForm(args: Args, env: Env): EllsType = args match {
     case arg :: Nil => EllsString(evalExpression(arg, env).toString)
+    case _ => throw EllsArityException()
+  }
+
+
+  private def isList(args: Args, env: Env): EllsType = args match {
+    case arg :: Nil => EllsBoolean(evalExpression(arg, env) match {
+      case EllsList(_) => true
+      case EllsNil() => true
+      case _ => false
+    })
     case _ => throw EllsArityException()
   }
 

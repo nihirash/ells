@@ -59,6 +59,35 @@ class EnvSpec extends FreeSpec with Matchers {
     }
   }
 
+  "PreDef" - {
+    "will provide predefined map and filter" in {
+      val eval = new Eval
+      val env = Env.preDef
+      Parser(
+        """
+          |(def x '(1 2 3 4 5))
+          |
+          |(def res1 (map (fn (x) (+ 1 x)) x))
+          |(def res2 (filter (fn (x) (> x 3)) x))
+          |(list res1 res2 (n-th x 3))
+        """.stripMargin)
+        .map(eval.eval(_, env)) shouldEqual Right(EllsList(List(
+        EllsList(List(
+          EllsLong(2),
+          EllsLong(3),
+          EllsLong(4),
+          EllsLong(5),
+          EllsLong(6)
+        )),
+        EllsList(List(
+          EllsLong(4),
+          EllsLong(5)
+        )),
+        EllsLong(3)
+      )))
+    }
+  }
+
   val id1 = EllsIdentifier("id1")
   val bTrue = EllsBoolean(true)
   val bFalse = EllsBoolean(false)
