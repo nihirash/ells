@@ -4,7 +4,7 @@ import fastparse.all._
 
 object Parser {
   type parseResult = Either[String, Seq[EllsType]]
-  val expressionParser: Parser[EllsType] = P(listParser | valueParser)
+  val expressionParser: Parser[EllsType] = P(nilParser | numberParser | stringParser | booleanParser | identityParser | listParser | quoteParser | unquoteParser)
 
   val numberParser: Parser[EllsType] = P(doubleParser | longsParser)
   val identityParser: Parser[EllsType] = P(((charParser | specialCharsParser) ~ (digitsParser | specialCharsParser | charParser).rep).!.map(id => EllsIdentifier(id)))
@@ -14,11 +14,13 @@ object Parser {
     case _ => EllsBoolean(false)
   })
   val nilParser: Parser[EllsType] = P(("nil" | "()").!.map(_ => EllsNil()))
-  val listParser: Parser[EllsType] = P(("(" ~/ valueParser.rep(sep = separatorParser) ~ separatorParser ~ ")")).map(v => EllsList(v.toList))
+  val listParser: Parser[EllsType] = P(("(" ~/ expressionParser.rep(sep = separatorParser) ~ separatorParser ~ ")")).map(v => EllsList(v.toList))
   val bodyParser: Parser[Seq[EllsType]] = P(separatorParser ~ expressionParser.rep(sep = separatorParser))
-  private val specialCharsParser = P(CharsWhileIn("!@#$%^&*_-><=+*/"))
+  private val specialCharsParser = P(CharsWhileIn("!#$%^&*_-><=+*/"))
 
-  private val valueParser = P(nilParser | numberParser | stringParser | booleanParser | identityParser | listParser)
+  private val quoteParser: Parser[EllsType] = P("'" ~ expressionParser).map(v => EllsList(List(EllsIdentifier("quote"), v)))
+  private val unquoteParser: Parser[EllsType] = P("@" ~ expressionParser).map(v => EllsList(List(EllsIdentifier("unquote"), v)))
+
   private val separatorParser = P(CharsWhileIn(" \r\n\t,").?)
 
   def apply(s: String): parseResult = bodyParser.parse(s)

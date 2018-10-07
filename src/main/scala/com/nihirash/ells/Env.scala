@@ -7,7 +7,7 @@ case class Env(parent: Option[Env], definitions: MutableMap[EllsIdentifier, Ells
 
   def get(id: EllsIdentifier): EllsType = definitions.getOrElse(
     id,
-    parent.getOrElse(throw EllsDefinitionNotFound()).get(id)
+    parent.getOrElse(throw EllsDefinitionNotFound(s"$id is undefined")).get(id)
   )
 
   def set(id: EllsIdentifier, value: EllsType): Unit =

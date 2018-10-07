@@ -36,7 +36,8 @@ class Eval {
   }
 
   private def evalCall(id: EllsIdentifier, args: Args, env: Env): EllsType = id.v match {
-    case "quote" => quote(args)
+    case "quote" => quote(args, env)
+    case "eval" => eval(args.map(a => evalExpression(a, env)), env)
     case "+" => plus(args, env)
     case "-" => minus(args, env)
     case "*" => mult(args, env)
@@ -64,7 +65,6 @@ class Eval {
       case f: EllsFunction => evalFunction(f, args.map(evalExpression(_, env)), env)
       case _ => throw EllsEvalException(s"Can't eval form '$id' with args '$args'")
     }
-
   }
 
   private def fnForm(args: Args, env: Env): EllsType = {
@@ -108,10 +108,17 @@ class Eval {
   }
 
 
-  private def quote(tail: Args): EllsType = tail match {
-    case h :: Nil => h
+  private def quote(tail: Args, env: Env): EllsType = tail match {
+    case h :: Nil => unquote(h, env)
     case h :: t => throw EllsArityException()
     case Nil => throw EllsArityException()
+  }
+
+  private def unquote(arg: EllsType, env: Env): EllsType = arg match {
+    case EllsList(List(EllsIdentifier("unquote"), v)) => evalExpression(v, env)
+    case EllsList(v) =>
+      EllsList(v.map(unquote(_, env)))
+    case t: EllsType => t
   }
 
   private def plus(tail: Args, env: Env): EllsType = {

@@ -190,4 +190,31 @@ class ParserSpec extends FreeSpec with Matchers {
       }
     }
   }
+
+  "quote and unquote parsers" - {
+    "should parse quoted and unquoted values" in {
+      val valueToParse = "'(list hello @(+ 1 2))"
+      val expected = EllsList(List(
+        EllsIdentifier("quote"),
+        EllsList(List(
+          EllsIdentifier("list"),
+          EllsIdentifier("hello"),
+          EllsList(List(
+            EllsIdentifier("unquote"),
+            EllsList(List(
+              EllsIdentifier("+"),
+              EllsLong(1),
+              EllsLong(2)
+            ))
+          ))
+        ))
+      ))
+
+      Parser.expressionParser.parse(valueToParse) match {
+        case Parsed.Success(result, _) =>
+          result shouldEqual expected
+        case Parsed.Failure(a, b, c) => fail(s"Quotes parsing issue: ${a}, ${b}, ${c}")
+      }
+    }
+  }
 }

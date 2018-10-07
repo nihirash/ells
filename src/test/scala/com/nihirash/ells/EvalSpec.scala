@@ -30,6 +30,49 @@ class EvalSpec extends FreeSpec with Matchers {
         val parsed = Parser(toParse)
         assertThrows[EllsArityException](parsed.map(value => eval.evalExpression(value.head, Env.empty)))
       }
+
+      "will eval unquoted values" in {
+        val expression1 = "'(1 2 @(+ 1 2))"
+        val expression2 =
+          s"""
+             |(def var 'x)
+             |'(def @var (list 1 2 3 @(+ 1 2 3)))
+           """.stripMargin
+
+        Parser(expression1).map(eval.eval(_, Env.empty)) shouldEqual Right(EllsList(List(
+          EllsLong(1), EllsLong(2), EllsLong(3)
+        )))
+
+        Parser(expression2).map(eval.eval(_, Env.empty)) shouldEqual Right(EllsList(List(
+          EllsIdentifier("def"),
+          EllsIdentifier("x"),
+          EllsList(List(
+            EllsIdentifier("list"),
+            EllsLong(1),
+            EllsLong(2),
+            EllsLong(3),
+            EllsLong(6)
+          ))
+        )))
+      }
+    }
+
+    "eval" - {
+      "will eval quoted expression" in {
+        val env = Env.empty
+        val expression =
+          """
+            |(def x 1)
+            |(defn set! (var val)
+            | (eval '(set @var @val)))
+            |
+            | (set! 'x 2)
+            | x
+          """.stripMargin
+        val evaled = Parser(expression).map(eval.eval(_, env))
+
+        evaled shouldEqual Right(EllsLong(2))
+      }
     }
 
     "operator +" - {
