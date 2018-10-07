@@ -20,7 +20,6 @@ class Eval {
     val cdr = l.v.tail
     car match {
       case i: EllsIdentifier => evalCall(i, cdr, env)
-      case l: EllsFunction => evalFunction(l, cdr, env)
       case f => throw new RuntimeException(s"Cant eval form: $l")
     }
   }
