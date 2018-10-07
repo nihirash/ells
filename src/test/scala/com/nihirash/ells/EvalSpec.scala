@@ -418,6 +418,56 @@ class EvalSpec extends FreeSpec with Matchers {
       }
     }
 
+    "is? functions" - {
+      "is-nil? will return true when value is nil" in {
+        Parser("(is-nil? ())").map(eval.eval(_, Env.empty)) shouldEqual Right(EllsBoolean(true))
+      }
+
+      "is-nil? will return false when value isn't nil" in {
+        Parser("(is-nil? true)").map(eval.eval(_, Env.empty)) shouldEqual Right(EllsBoolean(false))
+      }
+
+      "is-number? will return true when argument is number" in {
+        Parser("(is-number? (+ 1 2))").map(eval.eval(_, Env.empty)) shouldEqual Right(EllsBoolean(true))
+      }
+
+      "is-number? will return false when argument isn't number" in {
+        Parser("(is-number? \"Hello\")").map(eval.eval(_, Env.empty)) shouldEqual Right(EllsBoolean(false))
+      }
+
+      "is-boolean? will return true when argument is boolean" in {
+        Parser("(is-boolean? true)").map(eval.eval(_, Env.empty)) shouldEqual Right(EllsBoolean(true))
+      }
+
+      "is-boolean? will return false when argument isn't boolean" in {
+        Parser("(is-boolean? nil)").map(eval.eval(_, Env.empty)) shouldEqual Right(EllsBoolean(false))
+      }
+
+      "is-fun? will return true when argument is function" in {
+        Parser("(is-fun? (fn () \"ok\"))").map(eval.eval(_, Env.empty)) shouldEqual Right(EllsBoolean(true))
+      }
+
+      "is-fun? will return false when argument isn't function" in {
+        Parser("(is-fun? nil)").map(eval.eval(_, Env.empty)) shouldEqual Right(EllsBoolean(false))
+      }
+    }
+
+    "to-string" - {
+      "will convert any type to string" in {
+        Parser("(to-string '(1 2 @(+ 1 2)))").map(eval.eval(_, Env.empty)) shouldEqual Right(EllsString("(1 2 3.0)"))
+      }
+    }
+
+    "to-number" - {
+      "will try convert string to number" in {
+        Parser("(to-number \"123\")").map(eval.eval(_, Env.empty)) shouldEqual Right(EllsDouble(123))
+      }
+
+      "will crash when converting imposible" in {
+        assertThrows[NumberFormatException](Parser("(to-number \"isnt number\")").map(eval.eval(_, Env.empty)))
+      }
+    }
+
     "named and anonymous functions" - {
       "will eval it" in {
         val toParse =

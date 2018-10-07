@@ -59,6 +59,13 @@ class Eval {
     case "def" => defForm(args, env)
     case "set" => setForm(args, env)
     case "fn" => fnForm(args, env)
+    case "is-nil?" => isNilForm(args, env)
+    case "is-number?" => isNumberForm(args, env)
+    case "is-string?" => isString(args, env)
+    case "is-boolean?" => isBoolean(args, env)
+    case "is-fun?" => isFun(args, env)
+    case "to-string" => toStringForm(args, env)
+    case "to-number" => toNumberForm(args, env)
     case "defn" => defnForm(args, env)
     case _ => env.get(id) match {
       case EllsNil() => EllsNil()
@@ -66,6 +73,55 @@ class Eval {
       case _ => throw EllsEvalException(s"Can't eval form '$id' with args '$args'")
     }
   }
+
+  private def toNumberForm(args: Args, env: Env): EllsType = args match {
+    case arg :: Nil => EllsDouble(evalExpression(arg, env).toString.toDouble)
+    case _ => throw EllsArityException()
+  }
+
+  private def toStringForm(args: Args, env: Env): EllsType = args match {
+    case arg :: Nil => EllsString(evalExpression(arg, env).toString)
+    case _ => throw EllsArityException()
+  }
+
+  private def isFun(args: Args, env: Env): EllsType = args match {
+    case arg :: Nil => EllsBoolean(evalExpression(arg, env) match {
+      case EllsFunction(_, _) => true
+      case _ => false
+    })
+    case _ => throw EllsArityException()
+  }
+
+  private def isString(args: Args, env: Env): EllsType = args match {
+    case arg :: Nil => EllsBoolean(evalExpression(arg, env) match {
+      case EllsString(_) => true
+      case _ => false
+    })
+    case _ => throw EllsArityException()
+  }
+
+  private def isBoolean(args: Args, env: Env): EllsType = args match {
+    case arg :: Nil => EllsBoolean(arg match {
+      case EllsBoolean(_) => true
+      case _ => false
+    })
+    case _ => throw EllsArityException()
+  }
+
+  private def isNilForm(args: Args, env: Env): EllsType = args match {
+    case arg :: Nil => EllsBoolean(evalExpression(arg, env).isNil)
+    case _ => throw EllsArityException()
+  }
+
+  private def isNumberForm(args: Args, env: Env): EllsType =
+    args match {
+      case arg :: Nil => evalExpression(arg, env) match {
+        case _: EllsNumber => EllsBoolean(true)
+        case _ => EllsBoolean(false)
+      }
+      case _ => throw EllsArityException()
+    }
+
 
   private def fnForm(args: Args, env: Env): EllsType = {
     val funArgs = args.head
