@@ -16,7 +16,7 @@ object Parser {
   val nilParser: Parser[EllsType] = P(("nil" | "()").!.map(_ => EllsNil()))
   val listParser: Parser[EllsType] = P(("(" ~/ expressionParser.rep(sep = separatorParser) ~ separatorParser ~ ")")).map(v => EllsList(v.toList))
   val bodyParser: Parser[Seq[EllsType]] = P(separatorParser ~ expressionParser.rep(sep = separatorParser))
-  private val specialCharsParser = P(CharsWhileIn("!#$%^&*_-><=+*/"))
+  private val specialCharsParser = P(CharsWhileIn("?!#$%^&*_-><=+*/"))
 
   private val quoteParser: Parser[EllsType] = P("'" ~ expressionParser).map(v => EllsList(List(EllsIdentifier("quote"), v)))
   private val unquoteParser: Parser[EllsType] = P("@" ~ expressionParser).map(v => EllsList(List(EllsIdentifier("unquote"), v)))

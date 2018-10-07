@@ -20,6 +20,7 @@ class Eval {
     val cdr = l.v.tail
     car match {
       case i: EllsIdentifier => evalCall(i, cdr, env)
+      case l: EllsFunction => evalFunction(l, cdr, env)
       case f => throw new RuntimeException(s"Cant eval form: $l")
     }
   }
@@ -115,8 +116,7 @@ class Eval {
 
   private def unquote(arg: EllsType, env: Env): EllsType = arg match {
     case EllsList(List(EllsIdentifier("unquote"), v)) => evalExpression(v, env)
-    case EllsList(v) =>
-      EllsList(v.map(unquote(_, env)))
+    case EllsList(v) => EllsList(v.map(unquote(_, env)))
     case t: EllsType => t
   }
 
