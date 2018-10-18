@@ -1,0 +1,27 @@
+sudo: false
+
+language: scala
+
+jdk: oraclejdk8
+
+scala:
+ - 2.12.7
+
+cache:
+  directories:
+    - $HOME/.ivy2/cache
+    - $HOME/.sbt/boot/
+
+jdk: oraclejdk8
+
+before_cache:
+  - find $HOME/.sbt -name "*.lock" | xargs rm
+  - find $HOME/.ivy2 -name "ivydata-*.properties" | xargs rm
+
+script:
+  - sbt ++$TRAVIS_SCALA_VERSION test 
+
+# Email specific recipient all the time
+notifications:
+  email:
+    on_success: always # default: change
