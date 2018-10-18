@@ -2,6 +2,7 @@
   "This function applies function to every element of list and returns resulting list"
   (if (not (is-fun? fun)) (throw "first argument must be function"))
   (if (not (is-list? lst)) (throw "second argument must be a list"))
+
   (defn in-map (lst acc)
         (def h (head lst))
         (if (tail lst)
@@ -14,6 +15,7 @@
   "This function removes values from list if function on elemnent of list will return nil"
   (if (not (is-fun? fun)) (throw "first argument must be function"))
   (if (not (is-list? lst)) (throw "second argument must be a list"))
+
   (defn in-filter (lst acc)
     (def head-result (fun (head lst)))
     (def new-acc
@@ -47,3 +49,10 @@
 (defn get (var)
   "This function gets value from quoted variable name"
   (eval '@var))
+
+(defn abs (number)
+  "This function returns absolete value of number"
+  (if (not (in-number? number)) (throw "only numberic values accepted"))
+
+  (if (> 0 number) number (- 0 number)))
+
