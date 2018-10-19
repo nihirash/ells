@@ -1,4 +1,20 @@
-(defn map (fun lst) 
+"Special forms to use as functional arguments"
+(defn max (lst) (max lst))
+(defn min (lst) (min lst))
+(defn eval (what) (eval what))
+(defn is-nil? (what) (is-nil? what))
+(defn is-number? (what) (is-number? what))
+(defn is-string? (what) (is-string? what))
+(defn is-boolean? (what) (is-boolean? what))
+(defn is-fun? (what) (is-fun? what))
+(defn is-list? (what) (is-list? what))
+(defn to-string (what) (to-string what))
+(defn to-number (what) (to-number what))
+(defn to-long (what) (to-long what))
+(defn string-length (what) (string-length what))
+
+"Default functions definitions"
+(defn map (fun lst)
   "This function applies function to every element of list and returns resulting list"
   (if (not (is-fun? fun)) (throw "first argument must be function"))
   (if (not (is-list? lst)) (throw "second argument must be a list"))

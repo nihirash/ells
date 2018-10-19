@@ -21,8 +21,8 @@ case class Env(parent: Option[Env], definitions: MutableMap[EllsIdentifier, Ells
 object Env {
   def empty: Env = Env(None, MutableMap.empty)
 
-  lazy val preDefinedEnviroment: Env = {
-    val code = Source.fromResource("stdlb.ells").getLines.mkString("\n")
+  def fromResource(name: String): Env = {
+    val code = Source.fromResource("stdlib.ells").getLines.mkString("\n")
     val env = empty
     val eval = new Eval
     Parser(code).map(eval.eval(_, env)) match {
@@ -31,5 +31,13 @@ object Env {
     }
   }
 
-  lazy val preDef: Env = preDefinedEnviroment.copy()
+  val preDef: Env = {
+    val code = Source.fromResource("stdlib.ells").getLines.mkString("\n")
+    val env = empty
+    val eval = new Eval
+    Parser(code).map(eval.eval(_, env)) match {
+      case Left(value) => throw EllsInternalError(value)
+      case Right(_)    => env
+    }
+  }
 }

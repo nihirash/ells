@@ -16,18 +16,12 @@ class InterpreterSpec extends FreeSpec with Matchers {
           |(defn parseCsv (csv)
           |  (def rows (split-string csv "\n"))
           |  (map
-          |   (fn (row)
-          |       (map
-          |	(fn (element) (to-number element))
-          |	(split-string row ",")))
+          |   (fn (row) (map to-number (split-string row ",")))
           |   rows))
-          |
           |
           |(set csv-parsed (parseCsv csv))
           |
-          |(map (fn (row) (max row))
-          |     csv-parsed)
-          |
+          |(map max csv-parsed)
         """.stripMargin
 
       val result = ells.run(script)
@@ -40,8 +34,8 @@ class InterpreterSpec extends FreeSpec with Matchers {
               EllsList(3, 4, 5)
             ) =>
           succeed
-
-        case _ => fail("Code doesn't eval properly")
+        case Left(message) => fail(message)
+        case _             => fail("Code doesn't eval properly")
       }
     }
 
