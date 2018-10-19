@@ -13,7 +13,6 @@ cache:
     - $HOME/.sbt/boot/
 
 jdk:
-- oraclejdk8
 - openjdk8
 
 before_cache:
