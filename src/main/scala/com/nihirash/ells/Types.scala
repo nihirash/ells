@@ -50,6 +50,10 @@ case class EllsList(v: List[EllsType]) extends EllsType {
   override def toNumber: EllsNumber = throw EllsTypesException("Can't cast list to numeric")
 }
 
+object EllsList {
+  def apply(args: EllsType*): EllsList = EllsList(args.toList)
+}
+
 case class EllsDouble(v: Double) extends EllsNumber {
   override def toDouble: Double = v
 
@@ -73,7 +77,7 @@ case class EllsDouble(v: Double) extends EllsNumber {
 
   override def equals(o: scala.Any): Boolean = o match {
     case i: EllsNumber => i.toDouble == v.toDouble
-    case _ => false
+    case _             => false
   }
 }
 
@@ -99,9 +103,9 @@ case class EllsLong(v: Long) extends EllsNumber {
   override def compare(that: EllsNumber): Int = v.compareTo(that.toLong)
 
   override def equals(o: scala.Any): Boolean = o match {
-    case i: EllsLong => i.toLong == v
+    case i: EllsLong   => i.toLong == v
     case i: EllsDouble => i.toDouble == toDouble
-    case _ => false
+    case _             => false
   }
 }
 

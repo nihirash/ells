@@ -14,7 +14,7 @@ class EvalSpec extends FreeSpec with Matchers {
 
       val toEval = Seq(doubleVal, longVal, stringVal, nilVal)
 
-      toEval.map(eval.evalExpression(_, Env.empty)) shouldEqual toEval
+      toEval.map(eval.eval(_, Env.empty)) shouldEqual toEval
 
     }
 
@@ -22,13 +22,14 @@ class EvalSpec extends FreeSpec with Matchers {
       "will return list forms unequaled" in {
         val toParse = "(quote (+ 1 2 3))"
         val parsed = Parser(toParse)
-        parsed.map(x => eval.evalExpression(x.head, Env.empty)) shouldEqual Right(EllsList(List(EllsIdentifier("+"), EllsLong(1), EllsLong(2), EllsLong(3))))
+        parsed.map(x => eval.eval(x.head, Env.empty)) shouldEqual Right(
+          EllsList(EllsIdentifier("+"), EllsLong(1), EllsLong(2), EllsLong(3)))
       }
 
       "will fail on more than one arg" in {
         val toParse = "(quote 1 2 3)"
         val parsed = Parser(toParse)
-        assertThrows[EllsArityException](parsed.map(value => eval.evalExpression(value.head, Env.empty)))
+        assertThrows[EllsArityException](parsed.map(value => eval.eval(value.head, Env.empty)))
       }
 
       "will eval unquoted values" in {
@@ -39,21 +40,26 @@ class EvalSpec extends FreeSpec with Matchers {
              |'(def @var (list 1 2 3 @(+ 1 2 3)))
            """.stripMargin
 
-        Parser(expression1).map(eval.eval(_, Env.empty)) shouldEqual Right(EllsList(List(
-          EllsLong(1), EllsLong(2), EllsLong(3)
-        )))
-
-        Parser(expression2).map(eval.eval(_, Env.empty)) shouldEqual Right(EllsList(List(
-          EllsIdentifier("def"),
-          EllsIdentifier("x"),
-          EllsList(List(
-            EllsIdentifier("list"),
+        Parser(expression1).map(eval.eval(_, Env.empty)) shouldEqual Right(
+          EllsList(
             EllsLong(1),
             EllsLong(2),
-            EllsLong(3),
-            EllsLong(6)
+            EllsLong(3)
           ))
-        )))
+
+        Parser(expression2).map(eval.eval(_, Env.empty)) shouldEqual Right(
+          EllsList(
+            EllsIdentifier("def"),
+            EllsIdentifier("x"),
+            EllsList(
+              List(
+                EllsIdentifier("list"),
+                EllsLong(1),
+                EllsLong(2),
+                EllsLong(3),
+                EllsLong(6)
+              ))
+          ))
       }
     }
 
@@ -79,15 +85,15 @@ class EvalSpec extends FreeSpec with Matchers {
       "should sum all elements" in {
         val toParse = "(+ 1.0 2.2 (+ 1 2) -1)"
         val parsed = Parser(toParse)
-        parsed.map(value => eval.evalExpression(value.head, Env.empty)) shouldEqual Right(EllsDouble(5.2))
+        parsed.map(value => eval.eval(value.head, Env.empty)) shouldEqual Right(EllsDouble(5.2))
 
       }
       "should fail on non numeric arguments" in {
         val toParse = "(+ 1 \"alex\")"
         val parsed = Parser(toParse)
         parsed match {
-          case Right(value) => assertThrows[EllsTypesException](eval.evalExpression(value.head, Env.empty))
-          case _ => fail("Parsing failure")
+          case Right(value) => assertThrows[EllsTypesException](eval.eval(value.head, Env.empty))
+          case _            => fail("Parsing failure")
         }
       }
     }
@@ -119,8 +125,8 @@ class EvalSpec extends FreeSpec with Matchers {
         val toParse = "(/ 9.0 0)"
         val parsed = Parser(toParse)
         parsed match {
-          case Right(value) => assertThrows[ArithmeticException](eval.evalExpression(value.head, Env.empty))
-          case _ => fail("Parsing failure")
+          case Right(value) => assertThrows[ArithmeticException](eval.eval(value.head, Env.empty))
+          case _            => fail("Parsing failure")
         }
       }
     }
@@ -129,11 +135,12 @@ class EvalSpec extends FreeSpec with Matchers {
       "will create list from arguments" in {
         val toParse = "(list \"hello, world\" (+ 2 2) (- 1 3))"
         val parsed = Parser(toParse)
-        parsed.map(eval.eval(_, Env.empty)) shouldEqual Right(EllsList(List(
-          EllsString("hello, world"),
-          EllsLong(4),
-          EllsLong(-2)
-        )))
+        parsed.map(eval.eval(_, Env.empty)) shouldEqual Right(
+          EllsList(
+            EllsString("hello, world"),
+            EllsLong(4),
+            EllsLong(-2)
+          ))
       }
     }
 
@@ -147,9 +154,11 @@ class EvalSpec extends FreeSpec with Matchers {
     "tail" - {
       "will return tail of list" in {
         val toParse = "(tail (quote (1 2 3)))"
-        Parser(toParse).map(eval.eval(_, Env.empty)) shouldEqual Right(EllsList(List(
-          EllsLong(2), EllsLong(3)
-        )))
+        Parser(toParse).map(eval.eval(_, Env.empty)) shouldEqual Right(
+          EllsList(
+            EllsLong(2),
+            EllsLong(3)
+          ))
       }
 
       "will return nil if list contains one element" in {
@@ -164,19 +173,42 @@ class EvalSpec extends FreeSpec with Matchers {
       }
     }
 
-    "append" - {
+    "list-merge" - {
+      "will merge two lists in one" in {
+        Parser("""(merge-lists '(1 2 3) '(4 5))""").map(eval.eval(_, Env.empty)) shouldEqual Right(
+          EllsList(
+            EllsLong(1),
+            EllsLong(2),
+            EllsLong(3),
+            EllsLong(4),
+            EllsLong(5)
+          ))
+      }
+    }
+
+    "list-append" - {
       "will append elements to list" in {
         val toParse = "(list-append (quote (1 2 3)) 4 5)"
-        Parser(toParse).map(eval.eval(_, Env.empty)) shouldEqual Right(EllsList(List(
-          EllsLong(1), EllsLong(2), EllsLong(3), EllsLong(4), EllsLong(5)
-        )))
+        Parser(toParse).map(eval.eval(_, Env.empty)) shouldEqual Right(
+          EllsList(
+            EllsLong(1),
+            EllsLong(2),
+            EllsLong(3),
+            EllsLong(4),
+            EllsLong(5)
+          ))
       }
 
       "will create list and append elements if first argument aren't list" in {
         val toParse = "(list-append 1 2 3 4 5)"
-        Parser(toParse).map(eval.eval(_, Env.empty)) shouldEqual Right(EllsList(List(
-          EllsLong(1), EllsLong(2), EllsLong(3), EllsLong(4), EllsLong(5)
-        )))
+        Parser(toParse).map(eval.eval(_, Env.empty)) shouldEqual Right(
+          EllsList(
+            EllsLong(1),
+            EllsLong(2),
+            EllsLong(3),
+            EllsLong(4),
+            EllsLong(5)
+          ))
       }
     }
 
@@ -386,9 +418,12 @@ class EvalSpec extends FreeSpec with Matchers {
             |(list (not true) (not ()) (not (not false)))
           """.stripMargin
 
-        Parser(toParse).map(eval.eval(_, Env.empty)) shouldEqual Right(EllsList(List(
-          EllsBoolean(false), EllsBoolean(true), EllsBoolean(false)
-        )))
+        Parser(toParse).map(eval.eval(_, Env.empty)) shouldEqual Right(
+          EllsList(
+            EllsBoolean(false),
+            EllsBoolean(true),
+            EllsBoolean(false)
+          ))
       }
     }
 
@@ -462,6 +497,14 @@ class EvalSpec extends FreeSpec with Matchers {
       "is-list? will return false when argument isn't list" in {
         Parser("(is-list? 123)").map(eval.eval(_, Env.empty)) shouldEqual Right(EllsBoolean(false))
       }
+
+      "is-string? will return true when argument is string" in {
+        Parser("""(is-string? "hello")""").map(eval.eval(_, Env.empty)) shouldEqual Right(EllsBoolean(true))
+      }
+
+      "is-string? will return false when argument isn't string" in {
+        Parser("""(is-string? 666)""").map(eval.eval(_, Env.empty)) shouldEqual Right(EllsBoolean(false))
+      }
     }
 
     "string functions" - {
@@ -470,32 +513,31 @@ class EvalSpec extends FreeSpec with Matchers {
       }
 
       "string-append will append anything to string(will cast all to strings)" in {
-        Parser("(string-append \"test\" \"-\" 13)").map(eval.eval(_, Env.empty)) shouldEqual Right(EllsString("test-13"))
+        Parser("(string-append \"test\" \"-\" 13)").map(eval.eval(_, Env.empty)) shouldEqual Right(
+          EllsString("test-13"))
       }
 
       "split-string will split string by sepparator" in {
-        Parser(
-          """
+        Parser("""
             |(map (fn (x) (to-number x)) (split-string "1,2,3" ","))
           """.stripMargin)
-          .map(eval.eval(_, Env.preDef)) shouldEqual Right(EllsList(List(
-          EllsLong(1),
-          EllsLong(2),
-          EllsLong(3)
-        )))
+          .map(eval.eval(_, Env.preDef)) shouldEqual Right(
+          EllsList(
+            EllsLong(1),
+            EllsLong(2),
+            EllsLong(3)
+          ))
       }
 
       "substring will gets substring from argument" in {
-        Parser(
-          """
+        Parser("""
             |(substring "123456" 2 3)
           """.stripMargin)
           .map(eval.eval(_, Env.preDef)) shouldEqual Right(EllsString("345"))
       }
 
       "string-length will return string's length" in {
-        Parser(
-          """
+        Parser("""
             |(string-length "some string")
           """.stripMargin)
           .map(eval.eval(_, Env.preDef)) shouldEqual Right(EllsLong(11))
@@ -555,13 +597,16 @@ class EvalSpec extends FreeSpec with Matchers {
             |(map (fn (x) (+ x 1)) (list 0 1 2 3))
           """.stripMargin
 
-        Parser(toParse).map(eval.eval(_, Env.empty)) shouldEqual Right(EllsList(List(
-          EllsLong(1), EllsLong(2), EllsLong(3), EllsLong(4)
-        )))
+        Parser(toParse).map(eval.eval(_, Env.empty)) shouldEqual Right(
+          EllsList(
+            EllsLong(1),
+            EllsLong(2),
+            EllsLong(3),
+            EllsLong(4)
+          ))
       }
     }
   }
-
 
   "eval" - {
     "should return last value" in {

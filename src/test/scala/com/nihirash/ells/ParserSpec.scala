@@ -11,7 +11,7 @@ class ParserSpec extends FreeSpec with Matchers {
 
       Parser.numberParser.parse(valueToParse) match {
         case Parsed.Success(EllsLong(value), index) => value shouldEqual expected
-        case _ => fail("Number doesn't parsed")
+        case _                                      => fail("Number doesn't parsed")
       }
     }
 
@@ -21,7 +21,7 @@ class ParserSpec extends FreeSpec with Matchers {
 
       Parser.numberParser.parse(valueToParse) match {
         case Parsed.Success(EllsDouble(v), index) => v shouldEqual expected
-        case _ => fail("Number doesn't parsed")
+        case _                                    => fail("Number doesn't parsed")
       }
     }
 
@@ -30,7 +30,7 @@ class ParserSpec extends FreeSpec with Matchers {
 
       Parser.numberParser.parse(valueToParse) match {
         case Parsed.Failure(_, _, _) => succeed
-        case _ => fail("Wrong value parsed")
+        case _                       => fail("Wrong value parsed")
       }
     }
   }
@@ -46,7 +46,7 @@ class ParserSpec extends FreeSpec with Matchers {
 
       Parser.stringParser.parse(valueToParse) match {
         case Parsed.Success(EllsString(v), index) => v shouldEqual expected
-        case _ => fail("String parsed wrong")
+        case _                                    => fail("String parsed wrong")
       }
     }
 
@@ -60,7 +60,7 @@ class ParserSpec extends FreeSpec with Matchers {
 
       Parser.stringParser.parse(valueToParse) match {
         case Parsed.Success(EllsString(v), index) => v shouldEqual expected
-        case _ => fail("Escaped string parse failure")
+        case _                                    => fail("Escaped string parse failure")
       }
     }
 
@@ -72,7 +72,7 @@ class ParserSpec extends FreeSpec with Matchers {
 
       Parser.stringParser.parse(valueToParse) match {
         case Parsed.Failure(_, _, _) => succeed
-        case _ => fail("Succesfully parsed non paired quotas")
+        case _                       => fail("Succesfully parsed non paired quotas")
       }
     }
   }
@@ -83,7 +83,7 @@ class ParserSpec extends FreeSpec with Matchers {
 
       Parser.identityParser.parse(valueToParse) match {
         case Parsed.Success(EllsIdentifier(id), _) => id shouldEqual valueToParse
-        case _ => fail("Identifier doesn't parsed")
+        case _                                     => fail("Identifier doesn't parsed")
       }
     }
 
@@ -91,7 +91,7 @@ class ParserSpec extends FreeSpec with Matchers {
       val valueToParse = "111GalaxyInDanger"
 
       Parser.identityParser.parse(valueToParse) match {
-        case Parsed.Success(_, _) => fail("Wrong identifier was parsed")
+        case Parsed.Success(_, _)    => fail("Wrong identifier was parsed")
         case Parsed.Failure(_, _, _) => succeed
       }
     }
@@ -101,7 +101,7 @@ class ParserSpec extends FreeSpec with Matchers {
 
       Parser.identityParser.parse(valueToParse) match {
         case Parsed.Success(EllsIdentifier(id), _) => id shouldEqual valueToParse
-        case _ => fail("Identifier doesn't parsed")
+        case _                                     => fail("Identifier doesn't parsed")
       }
     }
   }
@@ -112,7 +112,7 @@ class ParserSpec extends FreeSpec with Matchers {
 
       Parser.booleanParser.parse(valueToParse) match {
         case Parsed.Success(EllsBoolean(b), _) => b shouldEqual true
-        case _ => fail("true boolean value doesn't parsed")
+        case _                                 => fail("true boolean value doesn't parsed")
       }
     }
 
@@ -121,7 +121,7 @@ class ParserSpec extends FreeSpec with Matchers {
 
       Parser.booleanParser.parse(valueToParse) match {
         case Parsed.Success(EllsBoolean(b), _) => b shouldEqual false
-        case _ => fail("false boolean value doesn't parsed")
+        case _                                 => fail("false boolean value doesn't parsed")
       }
     }
 
@@ -129,7 +129,7 @@ class ParserSpec extends FreeSpec with Matchers {
       val valueToParse = "Flalse"
 
       Parser.booleanParser.parse(valueToParse) match {
-        case Parsed.Success(_, _) => fail("Wrong boolean was parsed")
+        case Parsed.Success(_, _)    => fail("Wrong boolean was parsed")
         case Parsed.Failure(_, _, _) => succeed
       }
     }
@@ -141,7 +141,7 @@ class ParserSpec extends FreeSpec with Matchers {
 
       Parser.nilParser.parse(valueToParse) match {
         case Parsed.Success(EllsNil(), _) => succeed
-        case _ => fail("Nil doesn't parsed")
+        case _                            => fail("Nil doesn't parsed")
       }
     }
   }
@@ -152,7 +152,7 @@ class ParserSpec extends FreeSpec with Matchers {
 
       Parser.listParser.parse(valueToParse) match {
         case Parsed.Success(EllsList(v), _) => v shouldEqual List(1L, 2L, 3L).map(EllsLong)
-        case _ => fail("List parsing failed")
+        case _                              => fail("List parsing failed")
       }
     }
 
@@ -164,20 +164,20 @@ class ParserSpec extends FreeSpec with Matchers {
           |        "Привет!"
           |        ()))""".stripMargin
 
-      val expected = EllsList(List(
+      val expected = EllsList(
         EllsIdentifier("hello"),
-        EllsList(List(
+        EllsList(
           EllsIdentifier("world"),
           EllsLong(1),
           EllsDouble(12.3),
           EllsString("Привет!"),
           EllsNil()
-        ))
-      ))
+        )
+      )
 
       Parser.listParser.parse(valueToParse) match {
         case Parsed.Success(result, _) => result shouldEqual expected
-        case _ => fail("Recursive parsing list failed")
+        case _                         => fail("Recursive parsing list failed")
       }
     }
 
@@ -185,7 +185,7 @@ class ParserSpec extends FreeSpec with Matchers {
       val valueToParse = "(hello world"
 
       Parser.listParser.parse(valueToParse) match {
-        case Parsed.Success(_, _) => fail("Worng list parsed")
+        case Parsed.Success(_, _)    => fail("Worng list parsed")
         case Parsed.Failure(_, _, _) => succeed
       }
     }
@@ -194,26 +194,24 @@ class ParserSpec extends FreeSpec with Matchers {
   "quote and unquote parsers" - {
     "should parse quoted and unquoted values" in {
       val valueToParse = "'(list hello @(+ 1 2))"
-      val expected = EllsList(List(
+      val expected = EllsList(
         EllsIdentifier("quote"),
-        EllsList(List(
+        EllsList(
           EllsIdentifier("list"),
           EllsIdentifier("hello"),
-          EllsList(List(
-            EllsIdentifier("unquote"),
-            EllsList(List(
-              EllsIdentifier("+"),
-              EllsLong(1),
-              EllsLong(2)
-            ))
-          ))
-        ))
-      ))
+          EllsList(EllsIdentifier("unquote"),
+                   EllsList(
+                     EllsIdentifier("+"),
+                     EllsLong(1),
+                     EllsLong(2)
+                   ))
+        )
+      )
 
       Parser.expressionParser.parse(valueToParse) match {
         case Parsed.Success(result, _) =>
           result shouldEqual expected
-        case Parsed.Failure(a, b, c) => fail(s"Quotes parsing issue: ${a}, ${b}, ${c}")
+        case Parsed.Failure(a, b, c) => fail(s"Quotes parsing issue: $a, $b, $c")
       }
     }
   }

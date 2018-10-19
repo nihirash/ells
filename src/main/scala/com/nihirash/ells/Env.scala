@@ -14,7 +14,7 @@ case class Env(parent: Option[Env], definitions: MutableMap[EllsIdentifier, Ells
   def set(id: EllsIdentifier, value: EllsType): Unit =
     definitions.get(id) match {
       case Some(_) => definitions.update(id, value)
-      case None => parent.getOrElse(throw EllsDefinitionNotFound()).set(id, value)
+      case None    => parent.getOrElse(throw EllsDefinitionNotFound()).set(id, value)
     }
 }
 
@@ -27,9 +27,9 @@ object Env {
     val eval = new Eval
     Parser(code).map(eval.eval(_, env)) match {
       case Left(value) => throw EllsInternalError(value)
-      case Right(_) => env
+      case Right(_)    => env
     }
   }
 
-  lazy val preDef = preDefinedEnviroment.copy()
+  lazy val preDef: Env = preDefinedEnviroment.copy()
 }
