@@ -120,7 +120,7 @@ Example:
 
 **NB** map is not default form, but present in standard **pre-defined environment** as definition.
 
-## defn
+### defn
 
 `defn` is syntax-sugar on def and fn - that's makes definition for functions.
 
