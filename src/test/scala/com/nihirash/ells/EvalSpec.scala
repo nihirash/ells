@@ -114,6 +114,13 @@ class EvalSpec extends FreeSpec with Matchers {
       }
     }
 
+    "operator mod" - {
+      "should return module of number" in {
+        val toParse = "(mod 5 3)"
+        Parser(toParse).map(eval.eval(_, Env.empty)) shouldBe Right(EllsLong(2))
+      }
+    }
+
     "operator /" - {
       "should divide values" in {
         val toParse = "(/ 9.0 (+ 1 2) (- 11 1))"

@@ -1,13 +1,28 @@
 import Dependencies._
 
-lazy val root = (project in file(".")).
-  settings(
-    inThisBuild(List(
-      organization := "com.nihirash",
-      scalaVersion := "2.12.6",
-      version := "0.1.0-SNAPSHOT",
-      scalafmtOnCompile := true
-    )),
-    name := "Embeddable Lisp-Like Scripting",
-    libraryDependencies ++= Seq(scalaTest % Test, fastParse)
-  )
+name := "ells"
+description := "Embeddable Lisp-Like Scripting"
+organization := "io.github.nihirash"
+organizationName := "Nihirash"
+organizationHomepage := Some(url("https://github.com/nihirash"))
+
+scalaVersion := "2.12.6"
+version := "0.2.1-SNAPSHOT"
+scalafmtOnCompile := true
+
+libraryDependencies ++= Seq(
+  scalaTest % Test,
+  fastParse
+)
+
+pomIncludeRepository := { _ => false }
+
+publishTo := {
+  val nexus = "https://oss.sonatype.org/"
+  if (isSnapshot.value) Some("snapshots" at nexus + "content/repositories/snapshots")
+  else Some("releases" at nexus + "service/local/staging/deploy/maven2")
+}
+
+credentials += Credentials(Path.userHome / ".sbt" / "sonatype_credential")
+
+publishMavenStyle := true

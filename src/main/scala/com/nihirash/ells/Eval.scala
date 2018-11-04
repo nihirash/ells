@@ -5,7 +5,7 @@ import com.nihirash.ells.lib._
 import scala.collection.mutable.{Map => MutableMap}
 
 class Eval {
-  val baseForms = Seq(
+  final val baseForms = Seq(
     new BaseForms(eval),
     new ListForms(eval),
     new MathForms(eval),

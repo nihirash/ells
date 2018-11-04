@@ -10,6 +10,7 @@ class MathForms(val eval: (EllsType, Env) => EllsType) extends SpecialForm {
       case "-"   => minus(args, env)
       case "*"   => mult(args, env)
       case "/"   => divide(args, env)
+      case "mod" => mod(args, env)
       case "min" => listMin(args, env)
       case "max" => listMax(args, env)
       case ">"   => more(args, env)
@@ -17,6 +18,14 @@ class MathForms(val eval: (EllsType, Env) => EllsType) extends SpecialForm {
       case "="   => isEqual(args, env)
       case _     => null
     })
+
+  private def mod(tail: List[EllsType], env: Env): EllsType = {
+    val args = tail.map(eval(_, env).toNumber)
+    tail match {
+      case arg1 :: arg2 :: Nil => arg1.toNumber.toLong % arg2.toNumber.toLong
+      case _ => throw EllsArityException("Only two numeric arguments acceptable")
+    }
+  }
 
   private def plus(tail: List[EllsType], env: Env): EllsType = {
     val args = tail.map(eval(_, env).toNumber)

@@ -1,4 +1,4 @@
-"Special forms to use as functional arguments"
+"Special forms wrappers for using as definitions"
 (defn max (lst) (max lst))
 (defn min (lst) (min lst))
 (defn eval (what) (eval what))
