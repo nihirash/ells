@@ -13,7 +13,7 @@ If you using SBT as build tool you may need add resolver, you may do it by addin
 resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
 ```
 
-Also you need to add artefact to your dependencies: `"io.github.nihirash" %% "ells" % "0.2.1-SNAPSHOT"`
+Also you need to add artefact to your dependencies: `"io.github.nihirash" %% "ells" % "0.2.3-SNAPSHOT"`
 
 ## Usage
 

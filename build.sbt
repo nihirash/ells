@@ -7,7 +7,7 @@ organizationName := "Nihirash"
 organizationHomepage := Some(url("https://github.com/nihirash"))
 
 scalaVersion := "2.12.6"
-version := "0.2.1-SNAPSHOT"
+version := "0.2.3-SNAPSHOT"
 scalafmtOnCompile := true
 
 libraryDependencies ++= Seq(

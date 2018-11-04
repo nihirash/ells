@@ -21,9 +21,9 @@ case class Env(parent: Option[Env], definitions: MutableMap[EllsIdentifier, Ells
 object Env {
   def empty: Env = Env(None, MutableMap.empty)
 
-  def fromResource(name: String): Env = {
-    val code = Source.fromResource("stdlib.ells").getLines.mkString("\n")
-    val env = empty
+  def fromResource(name: String, from: Env = empty): Env = {
+    val code = Source.fromResource(name).getLines.mkString("\n")
+    val env = from
     val eval = new Eval
     Parser(code).map(eval.eval(_, env)) match {
       case Left(value) => throw EllsInternalError(value)
