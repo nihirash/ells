@@ -101,11 +101,15 @@ object Example extends App {
 
 ```
 
-### Contributing
+## Sample app
+
+Small example of embedding ELLS is present [here](https://github.com/nihirash/ells-example)
+
+## Contributing
 
 If you want to contribute to a project and make it better, your help is very welcome. Any contributions are welcome - misspell fixes, code or documentation improvements and any other.
 
-### Legal
+## Legal
 
 Copyright (c) 2018 Alexander Sharihin. All rights reserved.
 
