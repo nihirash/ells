@@ -1,11 +1,12 @@
-[![Build Status](https://travis-ci.org/nihirash/ells.svg?branch=master)](https://travis-ci.org/nihirash/ells)
+[![Build Status](https://travis-ci.org/nihirash/ells.svg?branch=master)](https://travis-ci.org/nihirash/ells) 
+[![Latest version](https://maven-badges.herokuapp.com/maven-central/io.github.nihirash/ells_2.12/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.github.nihirash/ells_2.12)
 
 # ELLS
 Embeddable Lisp-Like Scripting project.
 
 ## Installation
 
-Just add artifact to your dependencies: `"io.github.nihirash" %% "ells" % "0.2.4"`
+Just add artifact to your dependencies: `"io.github.nihirash" %% "ells" % <latest version>`
 
 ## Usage
 
