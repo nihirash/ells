@@ -7,8 +7,28 @@ organizationName := "Nihirash"
 organizationHomepage := Some(url("https://github.com/nihirash"))
 
 scalaVersion := "2.12.6"
-version := "0.2.3-SNAPSHOT"
+version := "0.2.4"
 scalafmtOnCompile := true
+
+scmInfo := Some(
+  ScmInfo(
+    url("https://github.com/nihirash/ells"),
+    "scm:git@github.com:nihirash/ells.git"
+  )
+)
+
+developers := List(
+  Developer(
+    id = "nihirash",
+    name = "Alexander Sharihin",
+    email = "anihirash@gmail.com",
+    url = url("https://github.com/nihirash")
+  )
+)
+
+licenses := List("MIT" -> new URL("https://opensource.org/licenses/MIT"))
+homepage := Some(url("https://github.com/nihirash/ells"))
+
 
 libraryDependencies ++= Seq(
   scalaTest % Test,

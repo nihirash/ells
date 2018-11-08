@@ -5,15 +5,7 @@ Embeddable Lisp-Like Scripting project.
 
 ## Installation
 
-ELLS using Sonatype OSS repository.
-
-If you using SBT as build tool you may need add resolver, you may do it by adding this line to your `build.sbt`(or at separate file):
-
-```
-resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
-```
-
-Also you need to add artefact to your dependencies: `"io.github.nihirash" %% "ells" % "0.2.3-SNAPSHOT"`
+Just add artifact to your dependencies: `"io.github.nihirash" %% "ells" % "0.2.4"`
 
 ## Usage
 
